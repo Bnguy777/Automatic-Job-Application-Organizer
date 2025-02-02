@@ -12,28 +12,34 @@ from selenium.common.exceptions import TimeoutException
 import sys
 import spacy
 
+# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from file
+with open("credentials.txt", "r") as file:
+    credentials = {}
+    for line in file.readlines():
+        line = line.strip()  # Remove leading/trailing whitespace
+        if "=" in line:  # Ensure the line contains an equal sign
+            key, value = line.split("=")
+            credentials[key.strip()] = value.strip()  # Strip spaces from key and value
+# 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
+if "username" not in credentials or "password" not in credentials:
+    print("⚠️ Missing LinkedIn credentials in credentials.txt")
+    sys.exit(1)  # Exit if LinkedIn credentials are not found
+
+if "spreadsheet_id" not in credentials:
+    print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
+    sys.exit(1)  # Exit if Google Sheets Spreadsheet ID is not found
+
 # 🔹 Google Sheets API Setup
-SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to Google API key file
+SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to your Google API key file
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
+# 🔹 Authorize Google Sheets API
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-SPREADSHEET_ID = "101wYtyRRTlB0FKWzFn7jYuRiRV93tkQOiP7N0WAqqUM"  # Your Google Sheet ID
+# 🔹 Google Sheets: Get Spreadsheet ID from the credentials (read from credentials.txt)
+SPREADSHEET_ID = credentials["spreadsheet_id"]  # Get Spreadsheet ID from credentials.txt
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Select the first sheet
-
-# 🔹 Read LinkedIn credentials from file
-with open("credentials.txt", "r") as file:
-    lines = file.readlines()
-    credentials = {}
-    for line in lines:
-        key, value = line.strip().split("=")
-        credentials[key.strip()] = value.strip()  # Strip spaces from key and value
-
-# 🔹 Check if credentials are missing
-if "username" not in credentials or "password" not in credentials:
-    print("⚠️ Missing username or password in credentials.txt")
-    sys.exit(1)  # Exit if credentials are not found
 
 # 🔹 Set Up Selenium WebDriver with WebDriver Manager
 chrome_options = Options()
@@ -44,7 +50,7 @@ chrome_options.add_argument("--start-maximized")  # Open browser maximized
 # Automatically manage ChromeDriver
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
-wait = WebDriverWait(driver, 20)  # Increased timeout to 20 seconds
+wait = WebDriverWait(driver, 10)  
 
 # 🔹 Open LinkedIn Login Page
 def login_to_linkedin():
@@ -90,6 +96,9 @@ company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/di
 # 🔹 XPATH for the Job Description (where salary is found)
 job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
 
+# 🔹 XPATH for the Location
+location_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/div[3]/div/span[1]"
+
 # Load spaCy's pre-trained model for NER
 nlp = spacy.load("en_core_web_sm")
 
@@ -111,6 +120,22 @@ def extract_salary_with_spacy(job_desc_text):
     except Exception as e:
         print(f"Error using spaCy: {e}")
         return "Salary not available"
+
+# Function to extract location from job description
+def extract_location_from_description():
+    try:
+        # Wait for the location to appear using the provided XPath
+        location_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, location_xpath)))
+        location = location_element.text.strip()  # Extract and clean the location text
+
+        if "United States" in location:
+            location = location.replace("United States", "") + "United States Remote"
+
+
+        return location if location else "Location not available"
+    except Exception as e:
+        print(f"Error extracting location: {e}")
+        return "Location not available"
 
 # 🔹 Get the current job URL
 def get_job_url():
@@ -161,10 +186,14 @@ while True:
         salary = extract_salary_from_description()
         print(f"💰 Salary: {salary}")
 
-        # Save the job details to Google Sheets (Including salary)
+        # Extract the location from the job description
+        location = extract_location_from_description()
+        print(f"📍 Location: {location}")
+
+        # Save the job details to Google Sheets (Including salary and location)
         if job_title and company_name:
-            sheet.append_row([job_title, company_name, job_url, salary])
-            print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary}")
+            sheet.append_row([job_title, company_name, job_url, salary, location])
+            print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
         else:
             print("⚠️ Job details incomplete, not saving.")
 
