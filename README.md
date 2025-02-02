@@ -1,7 +1,5 @@
 # Automatic Job Application Tracker & Organizer 🚀
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!
 
@@ -24,7 +22,8 @@ A Python-based automation tool that:
 - Job Title
 - Company Name
 - Application URL
-- Application Date (auto-generated)
+- Salary
+- Location
 
 ---
 
@@ -133,9 +132,9 @@ python -m spacy download en_core_web_sm
 
 ### **Core Features**
 - [x] Basic LinkedIn-to-Sheets integration
+- [ ] Date and Benefits Tracking
 - [ ] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
 - [ ] **Auto-Sorting** by location (separate sheets per location)
-- [ ] **Benefits Tracking** (PTO, health insurance logging)
 
 ### **Advanced Features**
 - [ ] PostgreSQL integration for advanced querying
