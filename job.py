@@ -12,28 +12,34 @@ from selenium.common.exceptions import TimeoutException
 import sys
 import spacy
 
+# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from file
+with open("credentials.txt", "r") as file:
+    credentials = {}
+    for line in file.readlines():
+        line = line.strip()  # Remove leading/trailing whitespace
+        if "=" in line:  # Ensure the line contains an equal sign
+            key, value = line.split("=")
+            credentials[key.strip()] = value.strip()  # Strip spaces from key and value
+# 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
+if "username" not in credentials or "password" not in credentials:
+    print("⚠️ Missing LinkedIn credentials in credentials.txt")
+    sys.exit(1)  # Exit if LinkedIn credentials are not found
+
+if "spreadsheet_id" not in credentials:
+    print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
+    sys.exit(1)  # Exit if Google Sheets Spreadsheet ID is not found
+
 # 🔹 Google Sheets API Setup
-SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to Google API key file
+SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to your Google API key file
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
+# 🔹 Authorize Google Sheets API
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-SPREADSHEET_ID = "101wYtyRRTlB0FKWzFn7jYuRiRV93tkQOiP7N0WAqqUM"  # Your Google Sheet ID
+# 🔹 Google Sheets: Get Spreadsheet ID from the credentials (read from credentials.txt)
+SPREADSHEET_ID = credentials["spreadsheet_id"]  # Get Spreadsheet ID from credentials.txt
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Select the first sheet
-
-# 🔹 Read LinkedIn credentials from file
-with open("credentials.txt", "r") as file:
-    lines = file.readlines()
-    credentials = {}
-    for line in lines:
-        key, value = line.strip().split("=")
-        credentials[key.strip()] = value.strip()  # Strip spaces from key and value
-
-# 🔹 Check if credentials are missing
-if "username" not in credentials or "password" not in credentials:
-    print("⚠️ Missing username or password in credentials.txt")
-    sys.exit(1)  # Exit if credentials are not found
 
 # 🔹 Set Up Selenium WebDriver with WebDriver Manager
 chrome_options = Options()
@@ -44,7 +50,7 @@ chrome_options.add_argument("--start-maximized")  # Open browser maximized
 # Automatically manage ChromeDriver
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
-wait = WebDriverWait(driver, 10)  # Increased timeout to 20 seconds
+wait = WebDriverWait(driver, 10)  
 
 # 🔹 Open LinkedIn Login Page
 def login_to_linkedin():
