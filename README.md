@@ -92,5 +92,3 @@ MIT License. See [LICENSE](LICENSE) for details.
 *Built by [Your Name](https://github.com/yourusername) to combat job-hunting chaos.*  
 *Need help? [Open an Issue](https://github.com/yourusername/job-application-tracker/issues).*
 ```
-
----
