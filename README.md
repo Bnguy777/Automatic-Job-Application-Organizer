@@ -1,6 +1,4 @@
----
 
-```markdown
 # Automatic Job Application Tracker & Organizer 🚀
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
