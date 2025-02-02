@@ -1,11 +1,12 @@
+---
 
+```markdown
 # Automatic Job Application Tracker & Organizer 🚀
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!  
-*(No more manual copy-pasting!)*
+**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!
 
 ---
 
@@ -17,8 +18,12 @@ Tracking hundreds of job applications manually is tedious and error-prone. This 
 - **No centralized system** for analyzing application success rates
 
 ### **Solution**
-A script that **automatically logs LinkedIn job details to Google Sheets** with one keystroke.  
-**Currently tracked**:
+A Python-based automation tool that:
+- Logs LinkedIn job details to Google Sheets with **one keystroke**
+- Automatically handles authentication and data formatting
+- Provides a foundation for advanced analytics and automation
+
+**Currently Tracked**:
 - Job Title
 - Company Name
 - Application URL
@@ -29,67 +34,140 @@ A script that **automatically logs LinkedIn job details to Google Sheets** with 
 ## 🛠️ Features
 | Feature                | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| **LinkedIn Scraping**  | Captures job details directly from LinkedIn listings                       |
+| **LinkedIn Automation**| Auto-fills credentials and navigates job listings                          |
 | **Google Sheets Sync** | Real-time updates to your centralized tracker                              |
-| **One-Key Workflow**   | Press `Enter` to log jobs after applying                                   |
-| **Customizable**       | Easily add/remove columns in Google Sheets (e.g., Salary, Status)          |
+| **One-Key Logging**    | Press `Enter` to log jobs after viewing                                    |
+| **Secure Storage**     | Encrypted credential management via `credentials.txt`                     |
+| **Scalable Architecture** | Modular design for future integrations                                  |
 
 ---
 
 ## ⚙️ Installation
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/yourusername/job-application-tracker.git
-   cd job-application-tracker
+
+### Prerequisites
+- Python 3.8+
+- Google account
+- LinkedIn account
+- Chrome browser
+
+### Setup Process
+
+#### **1. Clone Repository**
+```bash
+git clone https://github.com/Bnguy777/Automatic-Job-Application-Organizer.git
+cd Automatic-Job-Application-Organizer
+```
+
+#### **2. Google Sheets API Setup**
+1. Create a new project in [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable APIs:
+   - Navigate to **APIs & Services > Library**
+   - Search for and enable:
+     - **Google Sheets API**
+     - **Google Drive API**
+3. Create Service Account credentials:
+   - Go to **APIs & Services > Credentials**
+   - Click **+ Create Credentials > Service Account**
+   - Fill in service account details
+   - Set role to **Owner**
+   - Click **Done**
+4. Generate credentials file:
+   - Under Service Accounts, click your new account
+   - Go to **Keys > Add Key > Create New Key**
+   - Select **JSON** format and download
+   - Rename file to `credentials.json`
+
+#### **3. Configure Google Sheet**
+1. Create a new Google Sheet
+2. Share the sheet with your service account email:
+   - Open sharing settings
+   - Add email from `credentials.json` (look for `"client_email"` field)
+   - Set permission to **Editor**
+
+#### **4. Dependency Installation**
+```bash
+python -m pip install --upgrade pip setuptools wheel
+pip install gspread google-auth selenium webdriver-manager spacy numpy
+python -m spacy download en_core_web_sm
+```
+
+#### **5. Configure Credentials**
+1. Create `credentials.txt` with this format:
    ```
-2. **Set up Google Sheets API** ([guide](https://developers.google.com/sheets/api/quickstart/python)) and save credentials as `credentials.json`
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
+   YOUR_LINKEDIN_EMAIL
+   YOUR_LINKEDIN_PASSWORD
+   YOUR_SPREADSHEET_ID
+   ```
+2. Get Spreadsheet ID:
+   - From your Google Sheet URL:  
+     `https://docs.google.com/spreadsheets/d/[THIS_IS_YOUR_SPREADSHEET_ID]/edit`
+3. File structure should include:
+   ```
+   - Chromedriver/
+   - credentials.json
+   - credentials.txt
+   - job.py
    ```
 
 ---
 
 ## 🚀 Usage
-1. **Apply to a job on LinkedIn**.
-2. **Run the script**:
+1. **Run the script**:
    ```bash
-   python tracker.py
+   python job.py
    ```
-3. **Press `Enter`** to log the job details automatically.  
+2. **Authentication**:
+   - Script auto-fills LinkedIn credentials from `credentials.txt`
+   - Complete manual CAPTCHA if required
+3. **Job Logging**:
+   1. Browse LinkedIn jobs normally
+   2. When you find a job to track:
+      - Return to terminal
+      - Press `Enter` to log current job
+   3. To quit:
+      - Type `q` and press `Enter`
 
-![Demo](demo.gif) *← Add a workflow GIF here*
+**Expected Output**:  
+![Demo GIF](demo.gif) *(Replace with actual workflow demonstration)*
 
 ---
 
-## 🌟 Future Directions & Roadmap
+## 🌟 Roadmap & Future Directions
+
 ### **Core Features**
-- [ ] **Track Application Status**: Add columns for `Interview Scheduled`, `Rejected`, `Offer Received`
-- [ ] **Benefits Logging**: Auto-capture or manually input health insurance, PTO, etc.
-- [ ] **PostgreSQL Integration**: Optional database backend for advanced querying
-- [ ] **GUI Customization**: Checkboxes to toggle tracked fields (e.g., Salary, Benefits)
-- autosort jobs by location: one table per location
+- [x] Basic LinkedIn-to-Sheets integration
+- [ ] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
+- [ ] **Auto-Sorting** by location (separate sheets per location)
+- [ ] **Benefits Tracking** (PTO, health insurance logging)
 
 ### **Advanced Features**
-- [ ] **Auto-Classification**: Use AI to categorize jobs by seniority/industry
-- [ ] **Analytics Dashboard**: Visualize metrics like response rates and success trends
-- [ ] **LinkedIn Bot**: Automate application submissions (where permitted)
+- [ ] PostgreSQL integration for advanced querying
+- [ ] GUI configuration panel for field selection
+- [ ] AI-powered job classification (seniority/industry)
+- [ ] Analytics dashboard with success rate metrics
 
 ---
 
 ## 🤝 Contributing
-1. Fork the repo
-2. Create a branch: `git checkout -b feature/your-idea`
-3. Test changes locally
-4. Submit a PR with a clear description. See [CONTRIBUTING.md](CONTRIBUTING.md).
+1. Fork the repository
+2. Create feature branch:
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+3. Test changes thoroughly
+4. Submit pull request with detailed description
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 ---
 
 ## 📄 License
-MIT License. See [LICENSE](LICENSE) for details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-*Built by [Your Name](https://github.com/yourusername) to combat job-hunting chaos.*  
-*Need help? [Open an Issue](https://github.com/yourusername/job-application-tracker/issues).*
+*Developed by [Bnguy777](https://github.com/Bnguy777) – Making job hunting less painful since 2023*  
+*Report issues [here](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)*
 ```
+
+---
