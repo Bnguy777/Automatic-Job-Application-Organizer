@@ -47,16 +47,28 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 wait = WebDriverWait(driver, 20)  # Increased timeout to 20 seconds
 
 # 🔹 Open LinkedIn Login Page
-driver.get("https://www.linkedin.com/login")
+def login_to_linkedin():
+    driver.get("https://www.linkedin.com/login")
 
-# 🔹 Log in to LinkedIn
-username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
-password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
-login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
-login_button.click()
+    # 🔹 Log in to LinkedIn
+    username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
+    password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
+    login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
+    login_button.click()
 
-# 🔹 Verify successful login by checking the current URL
-print(f"Successfully logged in! Current URL: {driver.current_url}")
+    # 🔹 Wait for CAPTCHA or successful login
+    try:
+        # Check if CAPTCHA appears (this can vary, customize as needed)
+        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[contains(text(), "captcha")]')))
+        print("⚠️ CAPTCHA detected. Please solve it manually...")
+        # Wait indefinitely for the user to solve the CAPTCHA
+        input("Press Enter after solving the CAPTCHA to continue...")
+    except TimeoutException:
+        # If no CAPTCHA, login was successful
+        print(f"Successfully logged in! Current URL: {driver.current_url}")
+
+# Try to login
+login_to_linkedin()
 
 # 🔹 Wait for LinkedIn Feed to load (use a more generic element 'main')
 try:
