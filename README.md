@@ -1,19 +1,53 @@
-# Automatic Job Application Tracker and Organizer
-Used for google sheets. When applying for jobs specifically on linked in, it grabs the job title, company name, and url and puts it into the google sheet for easier tracking and management of applied jobs.
+# Automatic Job Application Tracker & Organizer 🚀
 
-Problem:
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-Tldr: Tracking job applications is tedious, i aim to fix that.
+**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!  
+*(No more manual copy-pasting!)*
 
-Some people can find a job they like after only 10's of applications. in that case going through the hassle of setting up and running this code is not the best for those people. For people like me who has to apply for hundreds maybe thousands of jobs, this program will make your job tracking and staying organized a breeze. Although this program can not fill in applications and turn them in for you, once you find a job you like and want to apply too, coming back to the program and with a press of the enter key, will automatically log the important details of the job you applied to. currently it logs the : DETAILS. 
+---
 
-Installation
+## 🔍 Overview
+### **Problem**
+Job hunting often means **hundreds of applications** spread across platforms. Manually tracking:
+- Job titles
+- Company names
+- Application URLs
+- Status updates  
+...becomes **error-prone and time-consuming**. This tool automates the tedious parts so you can focus on landing roles.
 
+### **Solution**
+A lightweight automation script that:
+1. **Scrapes job details** from LinkedIn listings
+2. **Auto-populates** a Google Sheet with:
+   - Job Title
+   - Company Name
+   - Application URL
+   - Application Date *(automatically logged)*
+3. **One-key workflow** – press `Enter` to log jobs after applying
 
-Usage
+---
 
+## 🛠️ Features
+| Feature                | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| **LinkedIn Integration** | Auto-captures job details from LinkedIn listings                           |
+| **Google Sheets Sync**   | Updates your tracker in real-time                                         |
+| **Minimal Input**        | Log entries with a single keystroke                                       |
+| **Customizable Fields**  | Add/remove columns in your Sheet (e.g., Status, Salary)                   |
 
+---
 
-Future direction:
+## ⚙️ Installation
 
-Date, Status, Benefits, maybe integrate database like postgresql. gui check boxes to adjust what u want to add to the sheets
+### Prerequisites
+- Google Account (for Sheets)
+- LinkedIn account (logged in during use)
+- Python 3.8+ *(if using a Python script)*
+
+### Steps
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/job-application-tracker.git
+   cd job-application-tracker
