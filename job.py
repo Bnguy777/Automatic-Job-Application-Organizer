@@ -9,7 +9,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import signal
 import sys
 import spacy
 
@@ -121,26 +120,18 @@ def extract_salary_from_description():
         print(f"Error extracting salary from job description: {e}")
         return "Salary not available"
 
-# 🔹 Signal handler for clean exit on Escape key press
-def signal_handler(sig, frame):
-    print("\n🔴 Exiting the program...")
-    try:
-        driver.quit()
-    except Exception as e:
-        print(f"Error while quitting driver: {e}")
-    sys.exit(0)
-
-# Bind the signal to catch the Escape key and exit
-signal.signal(signal.SIGINT, signal_handler)
-
 # 🔹 Loop to continuously monitor the Apply button click
 while True:
     try:
         # Wait for you to click on a job and press Enter in VSCode
         print("🔹 Please click on a job to view details and press Enter when ready...")
 
-        # Wait for you to press Enter to proceed
-        input("Press Enter here when you're on the job details page...")
+        # Check if user wants to quit
+        user_input = input("Press 'q' and hit Enter to quit the program or just press Enter to continue: ")
+        if user_input.lower() == 'q':
+            print("Exiting program...")
+            driver.quit()
+            sys.exit(0)
 
         # Wait for the job title to be visible using implicit waits
         job_title_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_title_xpath)))
@@ -168,6 +159,5 @@ while True:
     except Exception as e:
         print(f"⚠️ An error occurred: {str(e)}")
 
-    # Check if Escape was pressed (you can manually exit by pressing 'Ctrl + C' in the terminal)
-    print("🔹 Press 'Ctrl + C' to exit.")
-    time.sleep(0.5)  # Reduced delay to speed up the loop
+    # Reduced delay for faster looping
+    time.sleep(0.5)  
