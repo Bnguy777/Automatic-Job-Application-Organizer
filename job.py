@@ -9,8 +9,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import signal
 import sys
+import spacy
 
 # 🔹 Google Sheets API Setup
 SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to Google API key file
@@ -50,10 +50,8 @@ wait = WebDriverWait(driver, 20)  # Increased timeout to 20 seconds
 driver.get("https://www.linkedin.com/login")
 
 # 🔹 Log in to LinkedIn
-username_input = wait.until(EC.presence_of_element_located((By.ID, "username")))
-password_input = wait.until(EC.presence_of_element_located((By.ID, "password")))
-username_input.send_keys(credentials["username"])
-password_input.send_keys(credentials["password"])
+username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
+password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
 login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
 login_button.click()
 
@@ -77,27 +75,63 @@ job_title_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2
 # 🔹 XPATH for the Company Name
 company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
 
+# 🔹 XPATH for the Job Description (where salary is found)
+job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
+
+# Load spaCy's pre-trained model for NER
+nlp = spacy.load("en_core_web_sm")
+
+# Function to extract salary using spaCy (NER)
+def extract_salary_with_spacy(job_desc_text):
+    try:
+        # Process the text with spaCy
+        doc = nlp(job_desc_text)
+        
+        # Look for money-related entities (MONEY, QUANTITY, etc.)
+        salary_entities = [ent for ent in doc.ents if ent.label_ in ['MONEY']]
+        
+        # If we find any money entities, return them
+        if salary_entities:
+            return " / ".join([ent.text for ent in salary_entities])
+        else:
+            # Fallback if no entities found
+            return "Salary not available"
+    except Exception as e:
+        print(f"Error using spaCy: {e}")
+        return "Salary not available"
+
 # 🔹 Get the current job URL
 def get_job_url():
     return driver.execute_script("return window.location.href")
 
-# 🔹 Signal handler for clean exit on Escape key press
-def signal_handler(sig, frame):
-    print("\n🔴 Exiting the program...")
-    driver.quit()  # Make sure to quit the browser before exiting
-    sys.exit(0)
+# 🔹 Function to extract salary from the job description
+def extract_salary_from_description():
+    try:
+        # Wait for the job description to appear using the provided XPath
+        job_desc_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_desc_xpath)))
+        job_desc_text = job_desc_element.text.strip()  # Extract and clean the job description text
+        print(f"Job Description Text: {job_desc_text}")
 
-# Bind the signal to catch the Escape key and exit
-signal.signal(signal.SIGINT, signal_handler)
+        # Extract salary information using spaCy
+        salary = extract_salary_with_spacy(job_desc_text)
+        
+        return salary
+    except Exception as e:
+        print(f"Error extracting salary from job description: {e}")
+        return "Salary not available"
 
 # 🔹 Loop to continuously monitor the Apply button click
 while True:
     try:
-        # Wait for you to click a job and press Enter in VSCode
+        # Wait for you to click on a job and press Enter in VSCode
         print("🔹 Please click on a job to view details and press Enter when ready...")
 
-        # Wait for you to press Enter to proceed
-        input("Press Enter here when you're on the job details page...")
+        # Check if user wants to quit
+        user_input = input("Press 'q' and hit Enter to quit the program or just press Enter to continue: ")
+        if user_input.lower() == 'q':
+            print("Exiting program...")
+            driver.quit()
+            sys.exit(0)
 
         # Wait for the job title to be visible using implicit waits
         job_title_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_title_xpath)))
@@ -111,16 +145,19 @@ while True:
         job_url = get_job_url()
         print(f"🔎 Job URL: {job_url}")
 
-        # Save the job details to Google Sheets
+        # Extract the salary information from the job description
+        salary = extract_salary_from_description()
+        print(f"💰 Salary: {salary}")
+
+        # Save the job details to Google Sheets (Including salary)
         if job_title and company_name:
-            sheet.append_row([job_title, company_name, job_url])
-            print(f"✅ Job Saved: {job_title} at {company_name}")
+            sheet.append_row([job_title, company_name, job_url, salary])
+            print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary}")
         else:
             print("⚠️ Job details incomplete, not saving.")
 
     except Exception as e:
         print(f"⚠️ An error occurred: {str(e)}")
 
-    # Check if Escape was pressed (you can manually exit by pressing 'Ctrl + C' in the terminal)
-    print("🔹 Press 'Ctrl + C' to exit.")
-    time.sleep(0.5)  # Reduced delay to speed up the loop
+    # Reduced delay for faster looping
+    time.sleep(0.5)  
