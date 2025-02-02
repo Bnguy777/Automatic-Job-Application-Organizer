@@ -68,6 +68,7 @@ A script that **automatically logs LinkedIn job details to Google Sheets** with 
 - [ ] **Benefits Logging**: Auto-capture or manually input health insurance, PTO, etc.
 - [ ] **PostgreSQL Integration**: Optional database backend for advanced querying
 - [ ] **GUI Customization**: Checkboxes to toggle tracked fields (e.g., Salary, Benefits)
+- autosort jobs by location: one table per location
 
 ### **Advanced Features**
 - [ ] **Auto-Classification**: Use AI to categorize jobs by seniority/industry
