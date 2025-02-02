@@ -1,6 +1,3 @@
----
-
-```markdown
 # Automatic Job Application Tracker & Organizer 🚀
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -128,7 +125,7 @@ python -m spacy download en_core_web_sm
       - Type `q` and press `Enter`
 
 **Expected Output**:  
-![Demo GIF](demo.gif) *(Replace with actual workflow demonstration)*
+- In Progress
 
 ---
 
@@ -148,26 +145,6 @@ python -m spacy download en_core_web_sm
 
 ---
 
-## 🤝 Contributing
-1. Fork the repository
-2. Create feature branch:
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-3. Test changes thoroughly
-4. Submit pull request with detailed description
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
-
----
-
-## 📄 License
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-*Developed by [Bnguy777](https://github.com/Bnguy777) – Making job hunting less painful since 2023*  
+*Developed by [Bnguy777](https://github.com/Bnguy777)  
 *Report issues [here](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)*
 ```
-
----
