@@ -13,27 +13,28 @@ import sys
 import spacy
 import os
 import msvcrt
+import traceback  # Added for better exception logging
 
 # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
 with open("credentials.txt", "r") as file:
     credentials = {}
     for line in file.readlines():
-        line = line.strip() 
-        if "=" in line:  
+        line = line.strip()
+        if "=" in line:
             key, value = line.split("=")
-            credentials[key.strip()] = value.strip() 
+            credentials[key.strip()] = value.strip()
 
 # 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
 if "username" not in credentials or "password" not in credentials:
     print("⚠️ Missing LinkedIn credentials in credentials.txt")
-    sys.exit(1)  
+    sys.exit(1)
 
 if "spreadsheet_id" not in credentials:
     print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
-    sys.exit(1) 
+    sys.exit(1)
 
 # 🔹 Google Sheets API Setup
-SERVICE_ACCOUNT_FILE = "credentials.json" 
+SERVICE_ACCOUNT_FILE = "credentials.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
 # 🔹 Authorize Google Sheets API
@@ -53,7 +54,7 @@ chrome_options.add_argument("--start-maximized")  # Open browser maximized
 # Automatically manage ChromeDriver
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
-wait = WebDriverWait(driver, 10)  
+wait = WebDriverWait(driver, 10)
 
 login_success = False  # Flag to track whether login is successful
 
@@ -74,11 +75,13 @@ def login_to_linkedin():
         # Check if CAPTCHA appears (this can vary, customize as needed)
         WebDriverWait(driver, 20).until(EC.url_contains('checkpoint/challenge'))
         print("⚠️ CAPTCHA detected. Please solve it manually...")
+
         # Wait indefinitely for the user to solve the CAPTCHA
-        # Instead of using input(), check the URL directly after some time
         WebDriverWait(driver, 60).until(EC.url_contains('https://www.linkedin.com/feed/'))  # Wait for the feed URL to load
         print("🔹 Successfully logged in! Feed page is accessible.")
         login_success = True
+        print(f"login_success after CAPTCHA handling: {login_success}")
+
     except TimeoutException:
         # If no CAPTCHA, login was successful
         print(f"Successfully logged in! Current URL: {driver.current_url}")
@@ -91,13 +94,16 @@ def login_to_linkedin():
             print("⚠️ Login failed. Cannot confirm Feed page.")
             sys.exit(1)
 
+        print(f"login_success after direct login check: {login_success}")
+
+
 # Try to login
 login_to_linkedin()
 
 # 🔹 Wait for LinkedIn Feed to load after solving CAPTCHA
 try:
     print("🔹 Waiting for LinkedIn Feed to load...")
-    
+
     # Wait for the feed URL to load (this ensures the page has fully loaded)
     WebDriverWait(driver, 20).until(EC.url_to_be('https://www.linkedin.com/feed/'))  # Wait for the feed URL
     print("🔹 Feed loaded successfully!")
@@ -134,10 +140,10 @@ def extract_salary_with_spacy(job_desc_text):
     try:
         # Process the text with spaCy
         doc = nlp(job_desc_text)
-        
+
         # Look for money-related entities (MONEY, QUANTITY, etc.)
         salary_entities = [ent for ent in doc.ents if ent.label_ in ['MONEY']]
-        
+
         # If we find any money entities, return them
         if salary_entities:
             return " / ".join([ent.text for ent in salary_entities])
@@ -147,6 +153,7 @@ def extract_salary_with_spacy(job_desc_text):
     except Exception as e:
         print(f"Error using spaCy: {e}")
         return "Salary not available"
+
 
 # Function to extract location from job description
 def extract_location_from_description():
@@ -164,9 +171,11 @@ def extract_location_from_description():
         print(f"Error extracting location: {e}")
         return "Location not available"
 
+
 # 🔹 Get the current job URL
 def get_job_url():
     return driver.execute_script("return window.location.href")
+
 
 # 🔹 Function to extract salary from the job description
 def extract_salary_from_description():
@@ -178,58 +187,88 @@ def extract_salary_from_description():
 
         # Extract salary information using spaCy
         salary = extract_salary_with_spacy(job_desc_text)
-        
+
         return salary
     except Exception as e:
         print(f"Error extracting salary from job description: {e}")
         return "Salary not available"
-    
+
 def exit_program():
     print("Closing browser...")
     driver.quit()
-    os.system('taskkill /f /im chromedriver.exe')
-    os.system('taskkill /f /im chrome.exe')
     sys.exit(0)
 
-# 🔹 Loop to continuously monitor the Apply button click
-while login_success:
-    try:
-        if msvcrt.kbhit() and msvcrt.getch().decode().lower() == 'q':
-            exit_program()
-        
-        # Wait for you to click on a job and press Enter in VSCode
-        print("🔹 Please click on a job to view details and press Enter when ready...")
+# 🔹 Loop to continuously monitor jobs
+max_retries = 5
+retries = 0
+previous_job_id = None  # Track last processed job ID
 
-        # Wait for the job title to be visible using implicit waits
-        job_title_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_title_xpath)))
+while login_success and retries < max_retries:
+    try:
+        # Get current URL before processing
+        current_job_url = driver.current_url
+        
+        # Extract the job ID from the current URL
+        current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]  # Assuming the URL follows the pattern
+
+        # 🔄 Check if the job ID has changed
+        if current_job_id == previous_job_id:
+            retries += 1
+            print(f"⚠️ Same job detected. Retry {retries}/{max_retries}. Please select a new job.")
+            if retries >= max_retries:
+                print("🚫 Maximum retries reached. Exiting...")
+                break
+            time.sleep(2)  # Add delay to avoid rapid looping
+            continue  # Skip to next iteration
+        else:
+            retries = 0  # Reset counter for new job
+            previous_job_id = current_job_id  # Update tracked job ID
+
+        # 🔹 Wait for user input to confirm before scraping job data
+        user_input = input(f"Job found: {current_job_url}\nPress Enter to save this job or 'q' to quit: ")
+
+        # 🔹 Check for quit command
+
+        if user_input.lower() == 'q':
+            print("Exiting program...")
+            exit_program()  # Exit if 'q' is entered
+
+        # 🔹 Scrape job details after pressing Enter
+        job_title_element = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, job_title_xpath))
+        )
         job_title = job_title_element.text.strip()
 
-        # Wait for the company name to be visible using implicit waits
-        company_name_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, company_name_xpath)))
+        # 🔹 Get company name
+        company_name_element = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, company_name_xpath))
+        )
         company_name = company_name_element.text.strip()
 
-        # Capture the current page URL
-        job_url = get_job_url()
+        # 🔹 Capture job URL (already captured as current_job_url)
+        job_url = current_job_url
         print(f"🔎 Job URL: {job_url}")
 
-        # Extract the salary information from the job description
+        # 🔹 Extract salary and location
         salary = extract_salary_from_description()
-        print(f"💰 Salary: {salary}")
-
-        # Extract the location from the job description
         location = extract_location_from_description()
+        
+        print(f"💰 Salary: {salary}")
         print(f"📍 Location: {location}")
 
-        # Save the job details to Google Sheets (Including salary and location)
+        # 🔹 Save to Google Sheets
         if job_title and company_name:
             sheet.append_row([job_title, company_name, job_url, salary, location])
             print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
         else:
             print("⚠️ Job details incomplete, not saving.")
 
-        print("Press 'q' and hit Enter to quit the program or just press Enter to continue: ")
-
     except Exception as e:
+        retries += 1
         print(f"⚠️ An error occurred: {str(e)}")
+        print(f"Stack trace: {traceback.format_exc()}")
+        if retries >= max_retries:
+            print("🚫 Maximum error retries reached, exiting...")
+            break
 
-    time.sleep(0.5)
+    time.sleep(0.5)  # Brief pause between iterations
