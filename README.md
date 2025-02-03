@@ -123,10 +123,20 @@ python -m spacy download en_core_web_sm
       - Press `Enter` to log current job
    3. To quit:
       - Type `q` and press `Enter`
+---
+## 🖥️ Demo: How It Works
 
-**Expected Output**:  
-- In Progress
+### 1. CAPTCHA Handling (Manual Intervention)
+![CAPTCHA Verification](images/img1.png)  
+*Waiting for you to solve the captcha manually.*  
 
+### 2. One-Key Job Logging (Terminal)
+![Terminal Logging Interface](images/img2.png)  
+*Press Enter in the terminal to log the job you're viewing on LinkedIn.*  
+
+### 3. Automated Google Sheets Update  
+![Google Sheets Job Tracking](images/img3.png)  
+*Job details (title, company, URL, salary) auto-populated in your tracker.*  
 ---
 
 ## 🌟 Roadmap & Future Directions
