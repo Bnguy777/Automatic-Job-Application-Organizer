@@ -125,6 +125,7 @@ python -m spacy download en_core_web_sm
       - Type `q` and press `Enter`
 ---
 ## 🖥️ Demo: How It Works
+Video recording demo in progress
 
 ### 1. CAPTCHA Handling (Manual Intervention)
 ![CAPTCHA Verification](images/img1.png)  
