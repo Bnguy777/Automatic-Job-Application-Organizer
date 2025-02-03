@@ -55,8 +55,12 @@ service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 wait = WebDriverWait(driver, 10)  
 
+login_success = False  # Flag to track whether login is successful
+
+
 # 🔹 Open LinkedIn Login Page
 def login_to_linkedin():
+    global login_success
     driver.get("https://www.linkedin.com/login")
 
     # 🔹 Log in to LinkedIn
@@ -68,24 +72,44 @@ def login_to_linkedin():
     # 🔹 Wait for CAPTCHA or successful login
     try:
         # Check if CAPTCHA appears (this can vary, customize as needed)
-        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[contains(text(), "captcha")]')))
+        WebDriverWait(driver, 20).until(EC.url_contains('checkpoint/challenge'))
         print("⚠️ CAPTCHA detected. Please solve it manually...")
         # Wait indefinitely for the user to solve the CAPTCHA
-        input("Press Enter after solving the CAPTCHA to continue...")
+        # Instead of using input(), check the URL directly after some time
+        WebDriverWait(driver, 60).until(EC.url_contains('https://www.linkedin.com/feed/'))  # Wait for the feed URL to load
+        print("🔹 Successfully logged in! Feed page is accessible.")
+        login_success = True
     except TimeoutException:
         # If no CAPTCHA, login was successful
         print(f"Successfully logged in! Current URL: {driver.current_url}")
+        # Confirm login by checking for an element that appears only after login (e.g., profile picture)
+        try:
+            WebDriverWait(driver, 10).until(EC.url_to_be('https://www.linkedin.com/feed/'))
+            print("Login confirmed. Feed page is accessible.")
+            login_success = True
+        except TimeoutException:
+            print("⚠️ Login failed. Cannot confirm Feed page.")
+            sys.exit(1)
 
 # Try to login
 login_to_linkedin()
 
-# 🔹 Wait for LinkedIn Feed to load 
+# 🔹 Wait for LinkedIn Feed to load after solving CAPTCHA
 try:
     print("🔹 Waiting for LinkedIn Feed to load...")
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "main")))  # Waiting for 'main' tag to load
+    
+    # Wait for the feed URL to load (this ensures the page has fully loaded)
+    WebDriverWait(driver, 20).until(EC.url_to_be('https://www.linkedin.com/feed/'))  # Wait for the feed URL
     print("🔹 Feed loaded successfully!")
+
 except TimeoutException:
     print("⚠️ Timeout: Could not find the expected element on the page.")
+    print("Attempting to check the URL instead...")
+    # Optionally, you can check if the URL is 'feed' even if the <main> tag isn't found
+    if 'feed' in driver.current_url:
+        print("🔹 Feed page detected.")
+    else:
+        print("⚠️ Something went wrong, could not confirm feed page.")
 
 # 🔹 Open LinkedIn Jobs Page
 driver.get("https://www.linkedin.com/jobs/")
@@ -135,7 +159,6 @@ def extract_location_from_description():
         if "United States" in location:
             location = location.replace("United States", "") + "United States Remote"
 
-
         return location if location else "Location not available"
     except Exception as e:
         print(f"Error extracting location: {e}")
@@ -167,17 +190,15 @@ def exit_program():
     os.system('taskkill /f /im chromedriver.exe')
     os.system('taskkill /f /im chrome.exe')
     sys.exit(0)
-    os.kill(os.getpid(), signal.SIGTERM)
 
 # 🔹 Loop to continuously monitor the Apply button click
-while True:
+while login_success:
     try:
         if msvcrt.kbhit() and msvcrt.getch().decode().lower() == 'q':
             exit_program()
         
         # Wait for you to click on a job and press Enter in VSCode
         print("🔹 Please click on a job to view details and press Enter when ready...")
-
 
         # Wait for the job title to be visible using implicit waits
         job_title_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_title_xpath)))
@@ -211,4 +232,4 @@ while True:
     except Exception as e:
         print(f"⚠️ An error occurred: {str(e)}")
 
-    time.sleep(0.5)  
+    time.sleep(0.5)
