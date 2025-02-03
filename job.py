@@ -246,7 +246,7 @@ while login_success and retries < max_retries:
         company_name = company_name_element.text.strip()
 
         # 🔹 Capture job URL (already captured as current_job_url)
-        job_url = current_job_url
+        job_url = driver.current_url
         print(f"🔎 Job URL: {job_url}")
 
         # 🔹 Extract salary and location
@@ -258,7 +258,17 @@ while login_success and retries < max_retries:
 
         # 🔹 Save to Google Sheets
         if job_title and company_name:
-            sheet.append_row([job_title, company_name, job_url, salary, location])
+        # Append the row without the hyperlink formula
+            row = [job_title, company_name, "", salary, location]  
+            sheet.append_row(row)
+    
+            # Find the row number of the newly added job (this assumes you're always adding to the end)
+            row_num = len(sheet.get_all_values())  
+
+            # Update the cell where the job URL will be (in the 3rd column, i.e., column C)
+            job_url_link = f'=HYPERLINK("{job_url}", "Link")'
+            sheet.update_cell(row_num, 3, job_url_link)  # Update the 3rd column (C) with the formula
+
             print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
         else:
             print("⚠️ Job details incomplete, not saving.")
