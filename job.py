@@ -11,26 +11,29 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import sys
 import spacy
+import os
+import msvcrt
 
-# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from file
+# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
 with open("credentials.txt", "r") as file:
     credentials = {}
     for line in file.readlines():
-        line = line.strip()  # Remove leading/trailing whitespace
-        if "=" in line:  # Ensure the line contains an equal sign
+        line = line.strip() 
+        if "=" in line:  
             key, value = line.split("=")
-            credentials[key.strip()] = value.strip()  # Strip spaces from key and value
+            credentials[key.strip()] = value.strip() 
+
 # 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
 if "username" not in credentials or "password" not in credentials:
     print("⚠️ Missing LinkedIn credentials in credentials.txt")
-    sys.exit(1)  # Exit if LinkedIn credentials are not found
+    sys.exit(1)  
 
 if "spreadsheet_id" not in credentials:
     print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
-    sys.exit(1)  # Exit if Google Sheets Spreadsheet ID is not found
+    sys.exit(1) 
 
 # 🔹 Google Sheets API Setup
-SERVICE_ACCOUNT_FILE = "credentials.json"  # Path to your Google API key file
+SERVICE_ACCOUNT_FILE = "credentials.json" 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 
 # 🔹 Authorize Google Sheets API
@@ -76,7 +79,7 @@ def login_to_linkedin():
 # Try to login
 login_to_linkedin()
 
-# 🔹 Wait for LinkedIn Feed to load (use a more generic element 'main')
+# 🔹 Wait for LinkedIn Feed to load 
 try:
     print("🔹 Waiting for LinkedIn Feed to load...")
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "main")))  # Waiting for 'main' tag to load
@@ -128,6 +131,7 @@ def extract_location_from_description():
         location_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, location_xpath)))
         location = location_element.text.strip()  # Extract and clean the location text
 
+        # Infer remote if location is US
         if "United States" in location:
             location = location.replace("United States", "") + "United States Remote"
 
@@ -156,19 +160,24 @@ def extract_salary_from_description():
     except Exception as e:
         print(f"Error extracting salary from job description: {e}")
         return "Salary not available"
+    
+def exit_program():
+    print("Closing browser...")
+    driver.quit()
+    os.system('taskkill /f /im chromedriver.exe')
+    os.system('taskkill /f /im chrome.exe')
+    sys.exit(0)
+    os.kill(os.getpid(), signal.SIGTERM)
 
 # 🔹 Loop to continuously monitor the Apply button click
 while True:
     try:
+        if msvcrt.kbhit() and msvcrt.getch().decode().lower() == 'q':
+            exit_program()
+        
         # Wait for you to click on a job and press Enter in VSCode
         print("🔹 Please click on a job to view details and press Enter when ready...")
 
-        # Check if user wants to quit
-        user_input = input("Press 'q' and hit Enter to quit the program or just press Enter to continue: ")
-        if user_input.lower() == 'q':
-            print("Exiting program...")
-            driver.quit()
-            sys.exit(0)
 
         # Wait for the job title to be visible using implicit waits
         job_title_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_title_xpath)))
@@ -197,8 +206,9 @@ while True:
         else:
             print("⚠️ Job details incomplete, not saving.")
 
+        print("Press 'q' and hit Enter to quit the program or just press Enter to continue: ")
+
     except Exception as e:
         print(f"⚠️ An error occurred: {str(e)}")
 
-    # Reduced delay for faster looping
     time.sleep(0.5)  
