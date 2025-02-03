@@ -1,11 +1,13 @@
 # Automatic Job Application Tracker & Organizer 🚀
 
+**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!  
 
-**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!
+**Quick Links**:  
+[🔍 Overview](#overview) | [🛠️ Features](#features) | [⚙️ Installation](#installation) | [🚀 Usage](#usage) | [🖥️ Demo](#demo) | [🌟 Roadmap](#roadmap)  
 
 ---
 
-## 🔍 Overview
+## 🔍 Overview <a name="overview"></a>
 ### **Problem**
 Tracking hundreds of job applications manually is tedious and error-prone. This tool solves:
 - **Repetitive data entry** for job titles, companies, and URLs
@@ -27,7 +29,7 @@ A Python-based automation tool that:
 
 ---
 
-## 🛠️ Features
+## 🛠️ Features <a name="features"></a>
 | Feature                | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
 | **LinkedIn Automation**| Auto-fills credentials and navigates job listings                          |
@@ -38,8 +40,7 @@ A Python-based automation tool that:
 
 ---
 
-## ⚙️ Installation
-
+## ⚙️ Installation <a name="installation"></a>
 ### Prerequisites
 - Python 3.8+
 - Google account
@@ -47,7 +48,6 @@ A Python-based automation tool that:
 - Chrome browser
 
 ### Setup Process
-
 #### **1. Clone Repository**
 ```bash
 git clone https://github.com/Bnguy777/Automatic-Job-Application-Organizer.git
@@ -108,7 +108,7 @@ python -m spacy download en_core_web_sm
 
 ---
 
-## 🚀 Usage
+## 🚀 Usage <a name="usage"></a>
 1. **Run the script**:
    ```bash
    python job.py
@@ -123,10 +123,10 @@ python -m spacy download en_core_web_sm
       - Press `Enter` to log current job
    3. To quit:
       - Type `q` and press `Enter`
----
-## 🖥️ Demo: How It Works
-Video recording demo in progress
 
+---
+
+## 🖥️ Demo: How It Works <a name="demo"></a>
 ### 1. CAPTCHA Handling (Manual Intervention)
 ![CAPTCHA Verification](images/img1.png)  
 *Waiting for you to solve the captcha manually.*  
@@ -138,10 +138,10 @@ Video recording demo in progress
 ### 3. Automated Google Sheets Update  
 ![Google Sheets Job Tracking](images/img3.png)  
 *Job details (title, company, URL, salary) auto-populated in your tracker.*  
+
 ---
 
-## 🌟 Roadmap & Future Directions
-
+## 🌟 Roadmap & Future Directions <a name="roadmap"></a>
 ### **Core Features**
 - [x] Basic LinkedIn-to-Sheets integration
 - [ ] Date and Benefits Tracking
@@ -158,4 +158,6 @@ Video recording demo in progress
 
 *Developed by [Bnguy777](https://github.com/Bnguy777)  
 *Report issues [here](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)*
+```
 
+---
