@@ -83,6 +83,7 @@ cd Automatic-Job-Application-Organizer
 #### **4. Dependency Installation**
 ```bash
 python -m pip install --upgrade pip setuptools wheel
+pip install spacy --prefer-binary
 pip install gspread google-auth selenium webdriver-manager spacy numpy
 python -m spacy download en_core_web_sm
 ```
@@ -90,9 +91,9 @@ python -m spacy download en_core_web_sm
 #### **5. Configure Credentials**
 1. Create `credentials.txt` with this format:
    ```
-   YOUR_LINKEDIN_EMAIL
-   YOUR_LINKEDIN_PASSWORD
-   YOUR_SPREADSHEET_ID
+   username=YourLinkedInUsername
+   password=YourLinkedInPassword
+   spreadsheet_id=YourGoogleSheetId
    ```
 2. Get Spreadsheet ID:
    - From your Google Sheet URL:  
