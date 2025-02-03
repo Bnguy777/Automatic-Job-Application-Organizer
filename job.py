@@ -14,6 +14,7 @@ import spacy
 import os
 import msvcrt
 import traceback  # Added for better exception logging
+from datetime import datetime
 
 # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
 with open("credentials.txt", "r") as file:
@@ -268,6 +269,9 @@ while login_success and retries < max_retries:
             # Update the cell where the job URL will be (in the 3rd column, i.e., column C)
             job_url_link = f'=HYPERLINK("{job_url}", "Link")'
             sheet.update_cell(row_num, 3, job_url_link)  # Update the 3rd column (C) with the formula
+
+            today_date = datetime.today().strftime('%m/%d/%y')
+            sheet.update_cell(row_num, 6, today_date)
 
             print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
         else:
