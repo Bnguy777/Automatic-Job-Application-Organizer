@@ -158,6 +158,3 @@ python -m spacy download en_core_web_sm
 
 *Developed by [Bnguy777](https://github.com/Bnguy777)  
 *Report issues [here](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)*
-```
-
----
