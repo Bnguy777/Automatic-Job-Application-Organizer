@@ -126,19 +126,35 @@ python -m spacy download en_core_web_sm
 
 ---
 
-## 🖥️ Demo: How It Works <a name="demo"></a>
-[![Video Demo](http://img.youtube.com/vi/TMxOaq1Oj1g/0.jpg)](https://youtu.be/TMxOaq1Oj1g)
+## 🖥️ Demo: How It Works
+
+[![Video Demonstration](http://img.youtube.com/vi/TMxOaq1Oj1g/0.jpg)](https://youtu.be/TMxOaq1Oj1g)  
+*Click the thumbnail above to watch the video walkthrough*
+
+---
+
 ### 1. CAPTCHA Handling (Manual Intervention)
 ![CAPTCHA Verification](images/img1.png)  
-*Waiting for you to solve the captcha manually.*  
+**Process**: User solves CAPTCHA manually when prompted  
+*System waits for human verification before proceeding*
 
-### 2. One-Key Job Logging (Terminal)
+---
+
+### 2. One-Click Job Logging (Terminal Interface)
 ![Terminal Logging Interface](images/img2.png)  
-*Press Enter in the terminal to log the job you're viewing on LinkedIn.*  
+**Action**: Press `Enter` while viewing a LinkedIn job posting  
+*Automatically captures job details from current browser tab*
 
-### 3. Automated Google Sheets Update  
+---
+
+### 3. Automated Google Sheets Integration
 ![Google Sheets Job Tracking](images/img3.png)  
-*Job details (title, company, URL, salary) auto-populated in your tracker.*  
+**Output**: Populates spreadsheet with:  
+- Job Title
+- Company Name
+- Job URL 
+- Salary Range (when available)
+*Real-time updates in your designated Google Sheet*
 
 ---
 
