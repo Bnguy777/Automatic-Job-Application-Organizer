@@ -153,7 +153,8 @@ python -m spacy download en_core_web_sm
 - Job Title
 - Company Name
 - Job URL 
-- Salary Range (when available)
+- Salary Range etc
+
 *Real-time updates in your designated Google Sheet*
 
 ---
