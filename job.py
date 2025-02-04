@@ -266,12 +266,14 @@ while login_success and retries < max_retries:
             # Find the row number of the newly added job (this assumes you're always adding to the end)
             row_num = len(sheet.get_all_values())  
 
-            # Update the cell where the job URL will be (in the 3rd column, i.e., column C)
-            job_url_link = f'=HYPERLINK("{job_url}", "Link")'
-            sheet.update_cell(row_num, 3, job_url_link)  # Update the 3rd column (C) with the formula
+            job_url_link = f'=HYPERLINK("{job_url}", "Link")' # Convert the URL to a hyperlink formula
+            sheet.update_cell(row_num, 3, job_url_link)  
 
-            today_date = datetime.today().strftime('%m/%d/%y')
+            today_date = datetime.today().strftime('%m/%d/%y') # Get today's date
             sheet.update_cell(row_num, 6, today_date)
+
+            waiting_cell = sheet.cell(row_num, 7)  
+            sheet.update_cell(row_num, 7, "Waiting") # Update the status to "waiting" by default
 
             print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
         else:
