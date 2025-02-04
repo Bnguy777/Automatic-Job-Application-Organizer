@@ -126,7 +126,7 @@ python -m spacy download en_core_web_sm
 
 ---
 
-## 🖥️ Demo: How It Works
+## 🖥️ Demo: How It Works <a name="demo"></a>
 
 [![Video Demonstration](http://img.youtube.com/vi/TMxOaq1Oj1g/0.jpg)](https://youtu.be/TMxOaq1Oj1g)  
 *Click the thumbnail above to watch the video walkthrough*
