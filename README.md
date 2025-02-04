@@ -165,6 +165,7 @@ python -m spacy download en_core_web_sm
 - [ ] Date and Benefits Tracking
 - [ ] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
 - [ ] **Auto-Sorting** by location (separate sheets per location)
+- [ ] Work with other job boards
 
 ### **Advanced Features**
 - [ ] PostgreSQL integration for advanced querying
