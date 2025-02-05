@@ -88,7 +88,7 @@ def login_to_linkedin():
         print(f"Successfully logged in! Current URL: {driver.current_url}")
         # Confirm login by checking for an element that appears only after login (e.g., profile picture)
         try:
-            WebDriverWait(driver, 10).until(EC.url_to_be('https://www.linkedin.com/feed/'))
+            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'global-nav__me')))  # check for login profile
             print("Login confirmed. Feed page is accessible.")
             login_success = True
         except TimeoutException:
