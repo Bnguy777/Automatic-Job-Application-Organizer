@@ -65,37 +65,45 @@ def login_to_linkedin():
     global login_success
     driver.get("https://www.linkedin.com/login")
 
-    # 🔹 Log in to LinkedIn
-    username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
-    password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
-    login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
-    login_button.click()
+    # 🔹 Enter credentials and log in
+    wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
+    wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
+    driver.find_element(By.XPATH, '//*[@type="submit"]').click()
 
-    # 🔹 Wait for CAPTCHA or successful login
+    # 🔹 Simultaneous check for CAPTCHA or successful login
     try:
-        # Check if CAPTCHA appears (this can vary, customize as needed)
-        WebDriverWait(driver, 20).until(EC.url_contains('checkpoint/challenge'))
-        print("⚠️ CAPTCHA detected. Please solve it manually...")
-
-        # Wait indefinitely for the user to solve the CAPTCHA
-        WebDriverWait(driver, 60).until(EC.url_contains('https://www.linkedin.com/feed/'))  # Wait for the feed URL to load
-        print("🔹 Successfully logged in! Feed page is accessible.")
-        login_success = True
-        print(f"login_success after CAPTCHA handling: {login_success}")
-
+        WebDriverWait(driver, 20).until(
+            lambda d: 'checkpoint/challenge' in d.current_url or d.find_elements(By.CSS_SELECTOR, "img.global-nav__me-photo")
+        )
     except TimeoutException:
-        # If no CAPTCHA, login was successful
-        print(f"Successfully logged in! Current URL: {driver.current_url}")
-        # Confirm login by checking for an element that appears only after login (e.g., profile picture)
+        print("⛔ Login failed - Timeout waiting for CAPTCHA or login confirmation")
+        sys.exit(1)
+
+    # 🔹 Determine which condition was met
+    if 'checkpoint/challenge' in driver.current_url:
+        print("⚠️ CAPTCHA detected. Please solve manually within 60 seconds...")
         try:
-            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'global-nav__me')))  # check for login profile
-            print("Login confirmed. Feed page is accessible.")
+            WebDriverWait(driver, 60).until(
+                EC.url_contains('feed')  # Wait for successful redirect after CAPTCHA
+            )
             login_success = True
+            print("✅ CAPTCHA solved! Login successful")
         except TimeoutException:
-            print("⚠️ Login failed. Cannot confirm Feed page.")
+            print("⛔ CAPTCHA resolution timed out")
+            sys.exit(1)
+    else:
+        try:
+            # Quick confirmation check for profile element
+            WebDriverWait(driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "img.global-nav__me-photo"))
+            )
+            login_success = True
+            print("✅ Logged in successfully without CAPTCHA")
+        except TimeoutException:
+            print("⛔ Login verification failed - Profile element not found")
             sys.exit(1)
 
-        print(f"login_success after direct login check: {login_success}")
+    print(f"Login status: {login_success}")
 
 
 # Try to login
