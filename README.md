@@ -162,8 +162,8 @@ python -m spacy download en_core_web_sm
 ## 🌟 Roadmap & Future Directions <a name="roadmap"></a>
 ### **Core Features**
 - [x] Basic LinkedIn-to-Sheets integration
-- [ ] Date and Benefits Tracking
-- [ ] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
+- [x] Date and Benefits Tracking
+- [x] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
 - [ ] **Auto-Sorting** by location (separate sheets per location)
 - [ ] Work with other job boards
 
