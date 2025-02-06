@@ -11,10 +11,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import sys
 import spacy
+from spacy.matcher import Matcher
 import os
 import msvcrt
 import traceback  # Added for better exception logging
 from datetime import datetime
+import re
 
 # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
 with open("credentials.txt", "r") as file:
@@ -207,6 +209,63 @@ def exit_program():
     driver.quit()
     sys.exit(0)
 
+# Load spaCy model
+nlp = spacy.load("en_core_web_sm")
+
+# Configure benefit patterns with linguistic context
+benefit_patterns = [
+    # Health insurance variations
+    [{"LEMMA": {"IN": ["medical", "dental", "vision"]}}, {"LEMMA": "insurance"}],
+    [{"LOWER": "health"}, {"LOWER": {"IN": ["coverage", "plan"]}}],
+    
+    # Financial benefits
+    [{"LOWER": "401"}, {"LOWER": "k"}],
+    [{"LEMMA": "retirement"}, {"LEMMA": "plan"}],
+    [{"LOWER": "pension"}],
+    
+    # Time off
+    [{"LEMMA": "paid"}, {"LEMMA": {"IN": ["leave", "time"]}}, {"LEMMA": "off"}],
+    [{"LOWER": "pto"}],
+    
+    # Flexible accounts
+    [{"LOWER": "fsa"}],
+    [{"LOWER": "hsa"}],
+    
+    # Education & development
+    [{"LEMMA": "tuition"}, {"LEMMA": "reimbursement"}],
+    [{"LEMMA": "professional"}, {"LEMMA": "development"}],
+    
+    # Workplace arrangements
+    [{"LEMMA": "remote"}, {"LEMMA": "work"}],
+    [{"LEMMA": "flexible"}, {"LEMMA": "schedule"}]
+]
+
+matcher = Matcher(nlp.vocab)
+for pattern in benefit_patterns:
+    matcher.add("BENEFIT_PATTERNS", [pattern])
+
+def extract_important_benefits(job_desc_text):
+    doc = nlp(job_desc_text.lower())
+    benefits = set()
+
+    # Pattern-based matching
+    matches = matcher(doc)
+    for match_id, start, end in matches:
+        span = doc[start:end]
+        benefits.add(span.text.title())
+
+    # Contextual extraction for compensation phrases
+    money_phrases = ["match", "contribution", "bonus", "stock", "equity"]
+    for sent in doc.sents:
+        if any(token.text in money_phrases for token in sent):
+            benefits.add(sent.text.capitalize())
+
+    # Standardize similar terms
+    benefits = {b.replace("Pto", "Paid Time Off") for b in benefits}
+    benefits = {b.replace("401 K", "401(k)") for b in benefits}
+
+    return ", ".join(sorted(benefits))[:500] if benefits else "Key benefits not specified"
+
 # 🔹 Loop to continuously monitor jobs
 max_retries = 5
 retries = 0
@@ -243,49 +302,45 @@ while login_success and retries < max_retries:
             exit_program()  # Exit if 'q' is entered
 
         # 🔹 Scrape job details after pressing Enter
-        job_title_element = WebDriverWait(driver, 20).until(
+        job_title = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, job_title_xpath))
-        )
-        job_title = job_title_element.text.strip()
+        ).text.strip()
 
-        # 🔹 Get company name
-        company_name_element = WebDriverWait(driver, 20).until(
+        company_name = WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.XPATH, company_name_xpath))
-        )
-        company_name = company_name_element.text.strip()
+        ).text.strip()
 
-        # 🔹 Capture job URL (already captured as current_job_url)
-        job_url = driver.current_url
-        print(f"🔎 Job URL: {job_url}")
+        job_desc_text = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, job_desc_xpath))
+        ).text.strip()
 
-        # 🔹 Extract salary and location
+        # 🔹 Extract key information
         salary = extract_salary_from_description()
         location = extract_location_from_description()
-        
-        print(f"💰 Salary: {salary}")
-        print(f"📍 Location: {location}")
+        benefits = extract_important_benefits(job_desc_text)
+        job_url = driver.current_url
 
-        # 🔹 Save to Google Sheets
+        # 🔹 Save to Google Sheets with organized columns
         if job_title and company_name:
-        # Append the row without the hyperlink formula
-            row = [job_title, company_name, "", salary, location]  
-            sheet.append_row(row)
-    
-            # Find the row number of the newly added job (this assumes you're always adding to the end)
-            row_num = len(sheet.get_all_values())  
+            # Append base row structure
+            base_row = [job_title, company_name, "", salary, location]
+            sheet.append_row(base_row)
+            
+            # Get new row number
+            row_num = len(sheet.get_all_values())
 
-            job_url_link = f'=HYPERLINK("{job_url}", "Link")' # Convert the URL to a hyperlink formula
-            sheet.update_cell(row_num, 3, job_url_link)  
+            # Update specific columns
+            updates = {
+                3: f'=HYPERLINK("{job_url}", "Link")', 
+                6: datetime.today().strftime('%m/%d/%y'),  
+                8: benefits,  
+                7: "Waiting" 
+            }
 
-            today_date = datetime.today().strftime('%m/%d/%y') # Get today's date
-            sheet.update_cell(row_num, 6, today_date)
+            for col, value in updates.items():
+                sheet.update_cell(row_num, col, value)
 
-            waiting_cell = sheet.cell(row_num, 7)  
-            sheet.update_cell(row_num, 7, "Waiting") # Update the status to "waiting" by default
-
-            print(f"✅ Job Saved: {job_title} at {company_name} with Salary: {salary} and Location: {location}")
-        else:
-            print("⚠️ Job details incomplete, not saving.")
+            print(f"✅ Job Saved: {job_title} at {company_name}")
 
     except Exception as e:
         retries += 1
