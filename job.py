@@ -262,12 +262,8 @@ def extract_important_benefits(job_desc_text):
 
     return ", ".join(sorted(benefits))[:500] if benefits else "Key benefits not specified"
 
-# 🔹 Loop to continuously monitor jobs
-max_retries = 5
-retries = 0
-previous_job_id = None  # Track last processed job ID
 
-while login_success and retries < max_retries:
+while login_success:
     try:
         # Get current URL before processing
         current_job_url = driver.current_url
@@ -275,18 +271,6 @@ while login_success and retries < max_retries:
         # Extract the job ID from the current URL
         current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]  # Assuming the URL follows the pattern
 
-        # 🔄 Check if the job ID has changed
-        if current_job_id == previous_job_id:
-            retries += 1
-            print(f"⚠️ Same job detected. Retry {retries}/{max_retries}. Please select a new job.")
-            if retries >= max_retries:
-                print("🚫 Maximum retries reached. Exiting...")
-                break
-            time.sleep(2)  # Add delay to avoid rapid looping
-            continue  # Skip to next iteration
-        else:
-            retries = 0  # Reset counter for new job
-            previous_job_id = current_job_id  # Update tracked job ID
 
         # 🔹 Wait for user input to confirm before scraping job data
         user_input = input(f"Job found: {current_job_url}\nPress Enter to save this job or 'q' to quit: ")
@@ -339,11 +323,7 @@ while login_success and retries < max_retries:
             print(f"✅ Job Saved: {job_title} at {company_name}")
 
     except Exception as e:
-        retries += 1
         print(f"⚠️ An error occurred: {str(e)}")
         print(f"Stack trace: {traceback.format_exc()}")
-        if retries >= max_retries:
-            print("🚫 Maximum error retries reached, exiting...")
-            break
 
     time.sleep(0.5)  # Brief pause between iterations
