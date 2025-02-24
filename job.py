@@ -19,36 +19,8 @@ from datetime import datetime
 import re
 
 
-'''
-
-Plan for revamp:
-
-Check if the user wants to save jobs in indeed or linkedin
-credentialsLinkedin.txt and credentialsIndeed.txt
-login to either
-driver point
-login success flag update
-
-
-
-
-
-
-
-
-'''
 #Global Variables
 login_success = False  # Flag to track whether login is successful
-credentials = {}
-SERVICE_ACCOUNT_FILE = "credentials.json"
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-client = gspread.authorize(creds)
-
-SPREADSHEET_ID = credentials["spreadsheet_id"] 
-sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
-
 
 
 # 🔹 Open LinkedIn Login Page
@@ -238,16 +210,6 @@ def load_credentials(file_name):
     return credentials
 
 
-# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
-with open("credentialsLinkedIn.txt", "r") as file:
-    credentials = {}
-    for line in file.readlines():
-        line = line.strip()
-        if "=" in line:
-            key, value = line.split("=")
-            credentials[key.strip()] = value.strip()
-
-
 
 
 # 🔹 Main loop to scrape job details and save to Google Sheets
@@ -264,6 +226,16 @@ if __name__ == "__main__":
     driver = webdriver.Chrome(service=service, options=chrome_options)
     wait = WebDriverWait(driver, 10)
 
+    credentials = load_credentials("credentialsLinkedin.txt")
+    SERVICE_ACCOUNT_FILE = "credentials.json"
+    SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    client = gspread.authorize(creds)
+
+    SPREADSHEET_ID = credentials["spreadsheet_id"] 
+    sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Open the first sheet
+
     
 
     Job_Company_Input = input("Linkedin or Indeed? (L or I): ")
@@ -275,7 +247,6 @@ if __name__ == "__main__":
         
 
 
-
         login_to_linkedin()
 
         # 🔹 Open LinkedIn Jobs Page
@@ -285,7 +256,7 @@ if __name__ == "__main__":
         LinkedIn_company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
         LinkedIn_job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
         LinkedIn_location_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/div[3]/div/span[1]"
-
+        LinkedIn_pay_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/button/div[1]/span"
 
         while login_success:
 
@@ -319,8 +290,17 @@ if __name__ == "__main__":
                     EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath))
                 ).text.strip()
 
+                salary_xpath = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
+                ).text.strip()
+
+                if not salary_xpath:
+                    salary = extract_salary_from_description()
+                else:
+                    salary = salary_xpath
+                
+
                 # 🔹 Extract key information
-                salary = extract_salary_from_description()
                 location = extract_location_from_description()
                 benefits = extract_important_benefits(job_desc_text)
                 job_url = driver.current_url
