@@ -60,9 +60,28 @@ def login_to_linkedin():
             # **Return here, so the function can be called again from the outer logic**
             return
 
+def login_to_Indeed():
+    global login_success
+    driver.get("https://www.indeed.com/")
 
-# Load spaCy's pre-trained model for NER
-nlp = spacy.load("en_core_web_sm")
+    # 🔹 Wait for the page to load
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+
+    try:
+        # 🔹 Check if the search input field is present (indicating the user is logged in)
+        search_input = wait.until(EC.presence_of_element_located((By.ID, "text-input-what")))
+
+        if search_input:
+            print("🔹 Successfully logged in! Found the search input field.")
+            login_success = True
+        else:
+            print("⚠️ Unable to find the search input field. Login failed.")
+            login_success = False
+    except Exception as e:
+        print(f"⚠️ Error: {e}")
+        login_success = False
+
+
 
 # Function to extract salary using spaCy (NER)
 def extract_salary_with_spacy(job_desc_text):
@@ -219,22 +238,14 @@ if __name__ == "__main__":
 
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")  
-    chrome_options.add_argument("--log-level=3")  
-    chrome_options.add_argument("--start-maximized")  
+    chrome_options.add_argument("--log-level=3")   
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")  # Add a real User-Agent string
+    chrome_options.add_argument("--remote-debugging-port=9222") 
 
     service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     wait = WebDriverWait(driver, 10)
 
-    credentials = load_credentials("credentialsLinkedin.txt")
-    SERVICE_ACCOUNT_FILE = "credentials.json"
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-
-    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    client = gspread.authorize(creds)
-
-    SPREADSHEET_ID = credentials["spreadsheet_id"] 
-    sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Open the first sheet
 
     
 
@@ -242,16 +253,26 @@ if __name__ == "__main__":
 
 
     if Job_Company_Input.lower() == 'l':
+
         print("LinkedIn Selected")
+
         # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.tx
+        credentials = load_credentials("credentialsLinkedin.txt")
+        SERVICE_ACCOUNT_FILE = "credentials.json"
+        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        client = gspread.authorize(creds)
+
+        SPREADSHEET_ID = credentials["spreadsheet_id"] 
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
         
-
-
         login_to_linkedin()
 
         # 🔹 Open LinkedIn Jobs Page
         driver.get("https://www.linkedin.com/jobs/")
 
+        # xpath for job title, company name, job description, location, pay
         LinkedIn_job_title_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[2]/div/h1/a"
         LinkedIn_company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
         LinkedIn_job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
@@ -261,23 +282,16 @@ if __name__ == "__main__":
         while login_success:
 
             try:
-                # Get current URL before processing
+
                 current_job_url = driver.current_url
-            
-                # Extract the job ID from the current URL (expected pattern: '...currentJobId=<job_id>&...')
                 current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]
 
-
-                # 🔹 Wait for user input to confirm before scraping job data
                 user_input = input("Press Enter to save this job or 'q' to quit: ")
-
-                # 🔹 Check for quit command
 
                 if user_input.lower() == 'q':
                     print("Exiting program...")
-                    exit_program()  # Exit if 'q' is entered
+                    exit_program()  
 
-                # 🔹 Scrape job details after pressing Enter
                 job_title = WebDriverWait(driver, 20).until(
                     EC.presence_of_element_located((By.XPATH, LinkedIn_job_title_xpath))
                 ).text.strip()
@@ -307,14 +321,11 @@ if __name__ == "__main__":
 
                 # 🔹 Save to Google Sheets with organized columns
                 if job_title and company_name:
-                    # Append base row structure
                     base_row = [job_title, company_name, "", salary, location]
                     sheet.append_row(base_row)
                     
-                    # Get new row number
                     row_num = len(sheet.get_all_values())
 
-                    # Update specific columns
                     updates = {
                         3: f'=HYPERLINK("{job_url}", "Link")', 
                         6: datetime.today().strftime('%m/%d/%y'),  
@@ -331,11 +342,53 @@ if __name__ == "__main__":
                 print(f"⚠️ An error occurred: {str(e)}")
                 print(f"Stack trace: {traceback.format_exc()}")
 
-            time.sleep(0.5)  # Brief pause between iterations
+            time.sleep(0.5)  
 
     elif Job_Company_Input.lower() == 'i':
         print("Indeed Selected")
-        # 🔹 Read Indeed credentials and Google Sheets Spreadsheet ID from credentials.txt
+        print("Indeed is currently not supported.")
+        
+        # Currently not supported. Can not get through captcha manually
+
+        '''
+        credentials = load_credentials("credentialsIndeed.txt")
+        SERVICE_ACCOUNT_FILE = "credentials.json"
+        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        client = gspread.authorize(creds)
+
+        SPREADSHEET_ID = credentials["spreadsheet_id"] 
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
+        
+        login_to_Indeed()
+        print("t12")
+        driver.get("https://www.indeed.com/")
+        print("t12")
+        print(login_success)
+        while login_success:
+
+            try:
+                print("t13")
+                current_job_url = driver.current_url
+                current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]
+
+                user_input = input("Press Enter to save this job or 'q' to quit: ")
+
+                if user_input.lower() == 'q':
+                    print("Exiting program...")
+                    exit_program()
+            except Exception as e:
+                print(f"⚠️ An error occurred: {str(e)}")
+                print(f"Stack trace: {traceback.format_exc()}")
+
+            time.sleep(0.5)  
+    '''
+
+
+        
+    elif Job_Company_Input.lower() == 'm':
+        print("Manual Input Selected")
     else:
         print("Invalid Input")
         exit_program()
