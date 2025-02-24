@@ -18,51 +18,11 @@ import traceback  # Added for better exception logging
 from datetime import datetime
 import re
 
-# 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.txt
-with open("credentials.txt", "r") as file:
-    credentials = {}
-    for line in file.readlines():
-        line = line.strip()
-        if "=" in line:
-            key, value = line.split("=")
-            credentials[key.strip()] = value.strip()
 
-# 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
-if "username" not in credentials or "password" not in credentials:
-    print("⚠️ Missing LinkedIn credentials in credentials.txt")
-    sys.exit(1)
-
-if "spreadsheet_id" not in credentials:
-    print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
-    sys.exit(1)
-
-# 🔹 Google Sheets API Setup
-SERVICE_ACCOUNT_FILE = "credentials.json"
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-
-# 🔹 Authorize Google Sheets API
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-client = gspread.authorize(creds)
-
-# 🔹 Google Sheets: Get Spreadsheet ID from the credentials (read from credentials.txt)
-SPREADSHEET_ID = credentials["spreadsheet_id"]  # Get Spreadsheet ID from credentials.txt
-sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Select the first sheet
-
-# 🔹 Set Up Selenium WebDriver with WebDriver Manager
-chrome_options = Options()
-chrome_options.add_argument("--disable-gpu")  # Disable GPU hardware acceleration
-chrome_options.add_argument("--log-level=3")  # Suppress unnecessary logs
-chrome_options.add_argument("--start-maximized")  # Open browser maximized
-
-# Automatically manage ChromeDriver
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
-wait = WebDriverWait(driver, 10)
-
+#Global Variables
 login_success = False  # Flag to track whether login is successful
 
 
-# 🔹 Open LinkedIn Login Page
 # 🔹 Open LinkedIn Login Page
 def login_to_linkedin():
     global login_success
@@ -100,47 +60,28 @@ def login_to_linkedin():
             # **Return here, so the function can be called again from the outer logic**
             return
 
-    print(f"login_success after URL check: {login_success}")
+def login_to_Indeed():
+    global login_success
+    driver.get("https://www.indeed.com/")
+
+    # 🔹 Wait for the page to load
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+
+    try:
+        # 🔹 Check if the search input field is present (indicating the user is logged in)
+        search_input = wait.until(EC.presence_of_element_located((By.ID, "text-input-what")))
+
+        if search_input:
+            print("🔹 Successfully logged in! Found the search input field.")
+            login_success = True
+        else:
+            print("⚠️ Unable to find the search input field. Login failed.")
+            login_success = False
+    except Exception as e:
+        print(f"⚠️ Error: {e}")
+        login_success = False
 
 
-
-# Try to login
-login_to_linkedin()
-
-# 🔹 Wait for LinkedIn Feed to load after solving CAPTCHA
-try:
-    print("🔹 Waiting for LinkedIn Feed to load...")
-
-    # Wait for the feed URL to load (this ensures the page has fully loaded)
-    WebDriverWait(driver, 20).until(EC.url_to_be('https://www.linkedin.com/feed/'))  # Wait for the feed URL
-    print("🔹 Feed loaded successfully!")
-
-except TimeoutException:
-    print("⚠️ Timeout: Could not find the expected element on the page.")
-    print("Attempting to check the URL instead...")
-    # Optionally, you can check if the URL is 'feed' even if the <main> tag isn't found
-    if 'feed' in driver.current_url:
-        print("🔹 Feed page detected.")
-    else:
-        print("⚠️ Something went wrong, could not confirm feed page.")
-
-# 🔹 Open LinkedIn Jobs Page
-driver.get("https://www.linkedin.com/jobs/")
-
-# 🔹 XPATH for the Job Title
-job_title_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[2]/div/h1/a"
-
-# 🔹 XPATH for the Company Name
-company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
-
-# 🔹 XPATH for the Job Description (where salary is found)
-job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
-
-# 🔹 XPATH for the Location
-location_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/div[3]/div/span[1]"
-
-# Load spaCy's pre-trained model for NER
-nlp = spacy.load("en_core_web_sm")
 
 # Function to extract salary using spaCy (NER)
 def extract_salary_with_spacy(job_desc_text):
@@ -166,7 +107,7 @@ def extract_salary_with_spacy(job_desc_text):
 def extract_location_from_description():
     try:
         # Wait for the location to appear using the provided XPath
-        location_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, location_xpath)))
+        location_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, LinkedIn_location_xpath)))
         location = location_element.text.strip()  # Extract and clean the location text
 
         # Infer remote if location is US
@@ -188,7 +129,7 @@ def get_job_url():
 def extract_salary_from_description():
     try:
         # Wait for the job description to appear using the provided XPath
-        job_desc_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, job_desc_xpath)))
+        job_desc_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath)))
         job_desc_text = job_desc_element.text.strip()  # Extract and clean the job description text
         print(f"Job Description Text: {job_desc_text}")
 
@@ -262,68 +203,196 @@ def extract_important_benefits(job_desc_text):
 
     return ", ".join(sorted(benefits))[:500] if benefits else "Key benefits not specified"
 
-
-while login_success:
+def load_credentials(file_name):
+    """ Load specific credentials (LinkedIn or Indeed) from the given file. """
+    credentials = {}
     try:
-        # Get current URL before processing
-        current_job_url = driver.current_url
+        with open(file_name, "r") as file:
+            for line in file.readlines():
+                line = line.strip()
+                if "=" in line:
+                    key, value = line.split("=")
+                    credentials[key.strip()] = value.strip()
+    except FileNotFoundError:
+        print(f"⚠️ File {file_name} not found!")
+        sys.exit(1)
+
+    # 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
+    if "username" not in credentials or "password" not in credentials:
+        print("⚠️ Missing LinkedIn credentials in credentials.txt")
+        sys.exit(1)
+
+    if "spreadsheet_id" not in credentials:
+        print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
+        sys.exit(1)
+    
+    return credentials
+
+
+
+
+# 🔹 Main loop to scrape job details and save to Google Sheets
+if __name__ == "__main__":
+    print("🚀 Starting the LinkedIn Job Application Organizer...")
+
+
+    chrome_options = Options()
+    chrome_options.add_argument("--disable-gpu")  
+    chrome_options.add_argument("--log-level=3")   
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")  # Add a real User-Agent string
+    chrome_options.add_argument("--remote-debugging-port=9222") 
+
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    wait = WebDriverWait(driver, 10)
+
+
+    
+
+    Job_Company_Input = input("Linkedin or Indeed? (L or I): ")
+
+
+    if Job_Company_Input.lower() == 'l':
+
+        print("LinkedIn Selected")
+
+        # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.tx
+        credentials = load_credentials("credentialsLinkedin.txt")
+        SERVICE_ACCOUNT_FILE = "credentials.json"
+        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        client = gspread.authorize(creds)
+
+        SPREADSHEET_ID = credentials["spreadsheet_id"] 
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
         
-        # Extract the job ID from the current URL
-        current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]  # Assuming the URL follows the pattern
+        login_to_linkedin()
+
+        # 🔹 Open LinkedIn Jobs Page
+        driver.get("https://www.linkedin.com/jobs/")
+
+        # xpath for job title, company name, job description, location, pay
+        LinkedIn_job_title_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[2]/div/h1/a"
+        LinkedIn_company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
+        LinkedIn_job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
+        LinkedIn_location_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/div[3]/div/span[1]"
+        LinkedIn_pay_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/button/div[1]/span"
+
+        while login_success:
+
+            try:
+
+                current_job_url = driver.current_url
+                current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]
+
+                user_input = input("Press Enter to save this job or 'q' to quit: ")
+
+                if user_input.lower() == 'q':
+                    print("Exiting program...")
+                    exit_program()  
+
+                job_title = WebDriverWait(driver, 20).until(
+                    EC.presence_of_element_located((By.XPATH, LinkedIn_job_title_xpath))
+                ).text.strip()
+
+                company_name = WebDriverWait(driver, 20).until(
+                    EC.presence_of_element_located((By.XPATH, LinkedIn_company_name_xpath))
+                ).text.strip()
+
+                job_desc_text = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath))
+                ).text.strip()
+
+                salary_xpath = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
+                ).text.strip()
+
+                if not salary_xpath:
+                    salary = extract_salary_from_description()
+                else:
+                    salary = salary_xpath
+                
+
+                # 🔹 Extract key information
+                location = extract_location_from_description()
+                benefits = extract_important_benefits(job_desc_text)
+                job_url = driver.current_url
+
+                # 🔹 Save to Google Sheets with organized columns
+                if job_title and company_name:
+                    base_row = [job_title, company_name, "", salary, location]
+                    sheet.append_row(base_row)
+                    
+                    row_num = len(sheet.get_all_values())
+
+                    updates = {
+                        3: f'=HYPERLINK("{job_url}", "Link")', 
+                        6: datetime.today().strftime('%m/%d/%y'),  
+                        8: benefits,  
+                        7: "Waiting" 
+                    }
+
+                    for col, value in updates.items():
+                        sheet.update_cell(row_num, col, value)
+
+                    print(f"✅ Job Saved: {job_title} at {company_name}")
+
+            except Exception as e:
+                print(f"⚠️ An error occurred: {str(e)}")
+                print(f"Stack trace: {traceback.format_exc()}")
+
+            time.sleep(0.5)  
+
+    elif Job_Company_Input.lower() == 'i':
+        print("Indeed Selected")
+        print("Indeed is currently not supported.")
+        
+        # Currently not supported. Can not get through captcha manually
+
+        '''
+        credentials = load_credentials("credentialsIndeed.txt")
+        SERVICE_ACCOUNT_FILE = "credentials.json"
+        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        client = gspread.authorize(creds)
+
+        SPREADSHEET_ID = credentials["spreadsheet_id"] 
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
+        
+        login_to_Indeed()
+        print("t12")
+        driver.get("https://www.indeed.com/")
+        print("t12")
+        print(login_success)
+        while login_success:
+
+            try:
+                print("t13")
+                current_job_url = driver.current_url
+                current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]
+
+                user_input = input("Press Enter to save this job or 'q' to quit: ")
+
+                if user_input.lower() == 'q':
+                    print("Exiting program...")
+                    exit_program()
+            except Exception as e:
+                print(f"⚠️ An error occurred: {str(e)}")
+                print(f"Stack trace: {traceback.format_exc()}")
+
+            time.sleep(0.5)  
+    '''
 
 
-        # 🔹 Wait for user input to confirm before scraping job data
-        user_input = input(f"Job found: {current_job_url}\nPress Enter to save this job or 'q' to quit: ")
+        
+    elif Job_Company_Input.lower() == 'm':
+        print("Manual Input Selected")
+    else:
+        print("Invalid Input")
+        exit_program()
 
-        # 🔹 Check for quit command
+    
 
-        if user_input.lower() == 'q':
-            print("Exiting program...")
-            exit_program()  # Exit if 'q' is entered
 
-        # 🔹 Scrape job details after pressing Enter
-        job_title = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, job_title_xpath))
-        ).text.strip()
-
-        company_name = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, company_name_xpath))
-        ).text.strip()
-
-        job_desc_text = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, job_desc_xpath))
-        ).text.strip()
-
-        # 🔹 Extract key information
-        salary = extract_salary_from_description()
-        location = extract_location_from_description()
-        benefits = extract_important_benefits(job_desc_text)
-        job_url = driver.current_url
-
-        # 🔹 Save to Google Sheets with organized columns
-        if job_title and company_name:
-            # Append base row structure
-            base_row = [job_title, company_name, "", salary, location]
-            sheet.append_row(base_row)
-            
-            # Get new row number
-            row_num = len(sheet.get_all_values())
-
-            # Update specific columns
-            updates = {
-                3: f'=HYPERLINK("{job_url}", "Link")', 
-                6: datetime.today().strftime('%m/%d/%y'),  
-                8: benefits,  
-                7: "Waiting" 
-            }
-
-            for col, value in updates.items():
-                sheet.update_cell(row_num, col, value)
-
-            print(f"✅ Job Saved: {job_title} at {company_name}")
-
-    except Exception as e:
-        print(f"⚠️ An error occurred: {str(e)}")
-        print(f"Stack trace: {traceback.format_exc()}")
-
-    time.sleep(0.5)  # Brief pause between iterations
