@@ -35,7 +35,7 @@ A Python-based automation tool that:
 | **LinkedIn Automation**| Auto-fills credentials and navigates job listings                          |
 | **Google Sheets Sync** | Real-time updates to your centralized tracker                              |
 | **One-Key Logging**    | Press `Enter` to log jobs after viewing                                    |
-| **Secure Storage**     | Encrypted credential management via `credentials.txt`                     |
+| **Secure Storage**     | Encrypted credential management via `credentialsLinkedIn.txt`                     |
 | **Scalable Architecture** | Modular design for future integrations                                  |
 
 ---
@@ -89,7 +89,7 @@ python -m spacy download en_core_web_sm
 ```
 
 #### **5. Configure Credentials**
-1. Create `credentials.txt` with this format:
+1. Create `credentialsLinkedIn.txt` with this format:
    ```
    username=YourLinkedInUsername
    password=YourLinkedInPassword
@@ -102,7 +102,7 @@ python -m spacy download en_core_web_sm
    ```
    - Chromedriver/
    - credentials.json
-   - credentials.txt
+   - credentialsLinkedIn.txt
    - job.py
    ```
 
@@ -114,7 +114,7 @@ python -m spacy download en_core_web_sm
    python job.py
    ```
 2. **Authentication**:
-   - Script auto-fills LinkedIn credentials from `credentials.txt`
+   - Script auto-fills LinkedIn credentials from `credentialsLinkedIn.txt`
    - Complete manual CAPTCHA if required
 3. **Job Logging**:
    1. Browse LinkedIn jobs normally
