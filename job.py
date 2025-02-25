@@ -131,7 +131,7 @@ def extract_salary_from_description():
         # Wait for the job description to appear using the provided XPath
         job_desc_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath)))
         job_desc_text = job_desc_element.text.strip()  # Extract and clean the job description text
-        print(f"Job Description Text: {job_desc_text}")
+        #print(f"Job Description Text: {job_desc_text}")
 
         # Extract salary information using spaCy
         salary = extract_salary_with_spacy(job_desc_text)
@@ -228,7 +228,32 @@ def load_credentials(file_name):
     
     return credentials
 
+def get_salary(driver):
+    # Define the refined XPath for salary
+    LinkedIn_pay_xpath = "//span[contains(text(),'K/yr')]"  # Adjust as necessary
 
+    try:
+        # Extract the salary text using the refined XPath
+        salary_xpath = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
+        ).text.strip()
+
+        # Use regex to extract only the salary range (e.g., "$80K/yr - $119K/yr")
+        salary_match = re.search(r'\$\d{1,3}(?:,\d{3})*(?:K/yr|M/yr)(?:\s?-\s?\$\d{1,3}(?:,\d{3})*(?:K/yr|M/yr))?', salary_xpath)
+
+        if salary_match:
+            salary = salary_match.group()  # Extract the matched salary range
+            print(f"Extracted Salary: {salary}")
+        else:
+            # Fallback: Extract from the description if no salary found using the XPath
+            print("No salary found with refined XPath, falling back to description extraction.")
+            salary = extract_salary_from_description()
+
+    except Exception as e:
+        print(f"Error during salary extraction: {e}")
+        salary = None
+
+    return salary
 
 
 # 🔹 Main loop to scrape job details and save to Google Sheets
@@ -277,7 +302,7 @@ if __name__ == "__main__":
         LinkedIn_company_name_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div[1]/div[1]/div[1]/div/a"
         LinkedIn_job_desc_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[4]/article/div/div[1]"
         LinkedIn_location_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/div[3]/div/span[1]"
-        LinkedIn_pay_xpath = "/html/body/div[5]/div[3]/div[4]/div/div/main/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/button/div[1]/span"
+        
 
         while login_success:
 
@@ -304,14 +329,17 @@ if __name__ == "__main__":
                     EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath))
                 ).text.strip()
 
-                salary_xpath = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
-                ).text.strip()
+                salary = get_salary(driver)
 
-                if not salary_xpath:
+                if not salary:
+                    print("Salary not found using XPath. Checking job description...")
                     salary = extract_salary_from_description()
-                else:
-                    salary = salary_xpath
+
+                # If still no salary, set it to "N/A"
+                if not salary:
+                    salary = "N/A"
+
+                print(f"Final salary: {salary}")
                 
 
                 # 🔹 Extract key information
