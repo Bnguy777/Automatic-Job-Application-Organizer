@@ -229,31 +229,20 @@ def load_credentials(file_name):
     return credentials
 
 def get_salary(driver):
-    # Define the refined XPath for salary
-    LinkedIn_pay_xpath = "//span[contains(text(),'K/yr')]"  # Adjust as necessary
+    # Define the XPath for the salary element
+    LinkedIn_pay_xpath = "//span[contains(text(),'$')]"  # Adjust as needed based on LinkedIn's structure
 
     try:
-        # Extract the salary text using the refined XPath
-        salary_xpath = WebDriverWait(driver, 10).until(
+        # Extract the salary text using the XPath
+        salary_element = WebDriverWait(driver, 2).until(
             EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
-        ).text.strip()
-
-        # Use regex to extract only the salary range (e.g., "$80K/yr - $119K/yr")
-        salary_match = re.search(r'\$\d{1,3}(?:,\d{3})*(?:K/yr|M/yr)(?:\s?-\s?\$\d{1,3}(?:,\d{3})*(?:K/yr|M/yr))?', salary_xpath)
-
-        if salary_match:
-            salary = salary_match.group()  # Extract the matched salary range
-            print(f"Extracted Salary: {salary}")
-        else:
-            # Fallback: Extract from the description if no salary found using the XPath
-            print("No salary found with refined XPath, falling back to description extraction.")
-            salary = extract_salary_from_description()
-
+        )
+        salary = salary_element.text.strip()
+        print(f"Extracted Salary: {salary}")
+        return salary
     except Exception as e:
-        print(f"Error during salary extraction: {e}")
-        salary = None
-
-    return salary
+        print(f"Salary not found using XPath")
+        return None
 
 
 # 🔹 Main loop to scrape job details and save to Google Sheets
@@ -331,11 +320,6 @@ if __name__ == "__main__":
 
                 salary = get_salary(driver)
 
-                if not salary:
-                    print("Salary not found using XPath. Checking job description...")
-                    salary = extract_salary_from_description()
-
-                # If still no salary, set it to "N/A"
                 if not salary:
                     salary = "N/A"
 
