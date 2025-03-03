@@ -229,21 +229,36 @@ def load_credentials(file_name):
     return credentials
 
 def get_salary(driver):
-    # Define the XPath for the salary element
-    LinkedIn_pay_xpath = "//span[contains(text(),'$')]"  # Adjust as needed based on LinkedIn's structure
-
     try:
-        # Extract the salary text using the XPath
-        salary_element = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.XPATH, LinkedIn_pay_xpath))
+        # Use explicit XPath with multiple verification checks
+        salary_element = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((
+                By.XPATH,
+                '//*[@id="main"]/div/div[2]/div[2]/div/div[2]/div/div/div[1]/div/div[1]/div/div[1]/div/button/div[1]/span'
+            ))
         )
-        salary = salary_element.text.strip()
-        print(f"Extracted Salary: {salary}")
+        
+        # Direct text extraction with content sanitization
+        raw_text = salary_element.get_attribute("textContent").strip()
+        
+        # Advanced cleaning using regex patterns
+        salary = re.sub(
+            r'(Matches your job preferences.*|[\n\r\t]+|^\||\|$)', 
+            '', 
+            raw_text, 
+            flags=re.IGNORECASE
+        ).strip()
+        
+        # Final validation checks
+        if not re.search(r'\$\d+', salary):
+            raise ValueError("No valid salary format found")
+            
+        print(f"Sanitized salary: {salary}")
         return salary
-    except Exception as e:
-        print(f"Salary not found using XPath")
-        return None
 
+    except Exception as e:
+        print(f"Structured salary error: {str(e)}")
+        return extract_salary_from_description()  # Fallback to NLP parsing
 
 # 🔹 Main loop to scrape job details and save to Google Sheets
 if __name__ == "__main__":
