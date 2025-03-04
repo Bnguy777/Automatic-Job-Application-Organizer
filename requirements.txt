@@ -1,0 +1,7 @@
+selenium==4.7.2
+webdriver-manager==3.8.5
+gspread==5.0.0
+google-auth==2.6.0
+spacy==3.2.0
+numpy==1.21.4
+tkinter==0.1.0
