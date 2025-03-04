@@ -17,6 +17,8 @@ import msvcrt
 import traceback  # Added for better exception logging
 from datetime import datetime
 import re
+import tkinter as tk
+from tkinter import messagebox
 
 
 #Global Variables
