@@ -1,175 +1,135 @@
-# Automatic Job Application Tracker & Organizer 🚀
+# 🔍 Automated Job Application Tracker & Organizer <a name="overview"></a>
 
-**Automatically log LinkedIn job applications to Google Sheets** with one keystroke. Perfect for high-volume job seekers!  
+**Never miss a job application detail again!** Seamlessly Log job posting details to your Google Sheet in under a second!
 
-**Quick Links**:  
-[🔍 Overview](#overview) | [🛠️ Features](#features) | [⚙️ Installation](#installation) | [🚀 Usage](#usage) | [🖥️ Demo](#demo) | [🌟 Roadmap](#roadmap)  
+[![Open Issues](https://img.shields.io/github/issues/Bnguy777/Automatic-Job-Application-Organizer)](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)
 
----
+# Demo
 
-## 🔍 Overview <a name="overview"></a>
-### **Problem**
-Tracking hundreds of job applications manually is tedious and error-prone. This tool solves:
-- **Repetitive data entry** for job titles, companies, and URLs
-- **Disorganized tracking** of application statuses and follow-ups
-- **No centralized system** for analyzing application success rates
-
-### **Solution**
-A Python-based automation tool that:
-- Logs LinkedIn job details to Google Sheets with **one keystroke**
-- Automatically handles authentication and data formatting
-- Provides a foundation for advanced analytics and automation
-
-**Currently Tracked**:
-- Job Title
-- Company Name
-- Application URL
-- Salary
-- Location
+<a href="https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304">
+  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
+</a>
 
 ---
 
 ## 🛠️ Features <a name="features"></a>
-| Feature                | Description                                                                 |
-|------------------------|-----------------------------------------------------------------------------|
-| **LinkedIn Automation**| Auto-fills credentials and navigates job listings                          |
-| **Google Sheets Sync** | Real-time updates to your centralized tracker                              |
-| **One-Key Logging**    | Press `Enter` to log jobs after viewing                                    |
-| **Secure Storage**     | Encrypted credential management via `credentialsLinkedIn.txt`                     |
-| **Scalable Architecture** | Modular design for future integrations                                  |
+
+| Feature                | Implementation Details                                                                 |
+|------------------------|---------------------------------------------------------------------------------------|
+| **Google Sheet Sync**  | Real-time updates via Sheets API v4 with automatic formatting                         |
+| **LinkedIn Parsing**   | CSS Selector-based extraction of job titles, companies, and salaries                 |
 
 ---
 
-## ⚙️ Installation <a name="installation"></a>
-### Prerequisites
-- Python 3.8+
-- Google account
-- LinkedIn account
-- Chrome browser
+## ⚙️ Installation Guide <a name="installation"></a>
 
-### Setup Process
-#### **1. Clone Repository**
-```bash
-git clone https://github.com/Bnguy777/Automatic-Job-Application-Organizer.git
-cd Automatic-Job-Application-Organizer
+### 1. Google Sheet Setup (MANDATORY)
+**Step 1:** [Make a Copy of Template Sheet](https://docs.google.com/spreadsheets/d/1jEu5SZAC8szJa9HBLkUzjHBen_NDxcdvQIMF1tHI88Q/copy)  
+**Step 2:** Share with Service Account:
+```python
+# Find in credentials.json:
+"client_email": "your-service-account@project-id.iam.gserviceaccount.com"
+
+# In Google Sheet: Share > Add email > Editor access
 ```
 
-#### **2. Google Sheets API Setup**
-1. Create a new project in [Google Cloud Console](https://console.cloud.google.com/)
+### 2. Google Cloud Configuration
+1. Create Project: [console.cloud.google.com](https://console.cloud.google.com/)
 2. Enable APIs:
-   - Navigate to **APIs & Services > Library**
-   - Search for and enable:
-     - **Google Sheets API**
-     - **Google Drive API**
-3. Create Service Account credentials:
-   - Go to **APIs & Services > Credentials**
-   - Click **+ Create Credentials > Service Account**
-   - Fill in service account details
-   - Set role to **Owner**
-   - Click **Done**
-4. Generate credentials file:
-   - Under Service Accounts, click your new account
-   - Go to **Keys > Add Key > Create New Key**
-   - Select **JSON** format and download
-   - Rename file to `credentials.json`
+   ```bash
+   gcloud services enable sheets.googleapis.com drive.googleapis.com
+   ```
+3. Create Service Account:
+   ```bash
+   gcloud iam service-accounts create job-tracker \
+     --display-name="Job Application Tracker"
+   ```
+4. Download JSON Credentials → Rename to `credentials.json`
 
-#### **3. Configure Google Sheet**
-1. Create a new Google Sheet
-2. Share the sheet with your service account email:
-   - Open sharing settings
-   - Add email from `credentials.json` (look for `"client_email"` field)
-   - Set permission to **Editor**
-
-#### **4. Dependency Installation**
+### 3. Local Environment Setup
 ```bash
-python -m pip install --upgrade pip setuptools wheel
-pip install spacy --prefer-binary
-pip install gspread google-auth selenium webdriver-manager spacy numpy
+# Clone repository
+git clone https://github.com/Bnguy777/Automatic-Job-Application-Organizer.git
+cd Automatic-Job-Application-Organizer
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Initialize NLP model
 python -m spacy download en_core_web_sm
 ```
 
-#### **5. Configure Credentials**
-1. Create `credentialsLinkedIn.txt` with this format:
-   ```
-   username=YourLinkedInUsername
-   password=YourLinkedInPassword
-   spreadsheet_id=YourGoogleSheetId
-   ```
-2. Get Spreadsheet ID:
-   - From your Google Sheet URL:  
-     `https://docs.google.com/spreadsheets/d/[THIS_IS_YOUR_SPREADSHEET_ID]/edit`
-3. File structure should include:
-   ```
-   - Chromedriver/
-   - credentials.json
-   - credentialsLinkedIn.txt
-   - job.py
-   ```
+### 4. Credential Files Setup
+**credentialsLinkedIn.txt** (UTF-8 Encoding Required):
+```plaintext
+[Authentication]
+email = your.linkedin@email.com
+password = YourSecurePassword123!
+spreadsheet_id = your-copied-sheet-id-from-url
+
+[Settings]
+headless_mode = False  # Set True for server environments
+max_retries = 5
+```
+
+**File Structure Validation**:
+```
+.
+├── credentials.json            # Google Service Account
+├── credentialsLinkedIn.txt     # User-specific settings
+├── JobOrganizer.exe            # Main file to run
+├── chromedriver.exe            # Platform-specific drivers
+├── en_core_web_sm/             # NLP model data
+```
 
 ---
 
-## 🚀 Usage <a name="usage"></a>
-1. **Run the script**:
-   ```bash
-   python job.py
-   ```
-2. **Authentication**:
-   - Script auto-fills LinkedIn credentials from `credentialsLinkedIn.txt`
-   - Complete manual CAPTCHA if required
-3. **Job Logging**:
-   1. Browse LinkedIn jobs normally
-   2. When you find a job to track:
-      - Return to terminal
-      - Press `Enter` to log current job
-   3. To quit:
-      - Type `q` and press `Enter`
+## 🚀 Usage Instructions <a name="usage"></a>
+
+```bash
+# Start application (ensure Chrome is installed)
+python job.py
+
+# Command List:
+# [ENTER]  - Log current job
+# [Q]      - Quit and save session
+```
 
 ---
 
-## 🖥️ Demo: How It Works <a name="demo"></a>
+## 🖥️ Live Demo <a name="demo"></a>
 
-[![Video Demonstration](http://img.youtube.com/vi/TMxOaq1Oj1g/0.jpg)](https://youtu.be/TMxOaq1Oj1g)  
-*Click the thumbnail above to watch the video walkthrough*
+<a href="https://youtu.be/dir-9kCgLRQ?si=qngRT6QHpq8tSkRI">
+  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
+</a>
 
----
-
-### 1. CAPTCHA Handling (Manual Intervention)
-![CAPTCHA Verification](images/img1.png)  
-**Process**: User solves CAPTCHA manually when prompted  
-*System waits for human verification before proceeding*
-
----
-
-### 2. One-Click Job Logging (Terminal Interface)
-![Terminal Logging Interface](images/img2.png)  
-**Action**: Press `Enter` while viewing a LinkedIn job posting  
-*Automatically captures job details from current browser tab*
+**Tracked Fields**:
+1. Job Title 
+2. Company Name 
+3. Application URL 
+4. Salary Range
+5. Location
+6. Date
+7. Response
+8. Benefits
 
 ---
 
-### 3. Automated Google Sheets Integration
-![Google Sheets Job Tracking](images/img3.png)  
-**Output**: Populates spreadsheet with:  
-- Job Title
-- Company Name
-- Job URL 
-- Salary Range etc
+## 🌟 Roadmap & Future Features <a name="roadmap"></a>
 
-*Real-time updates in your designated Google Sheet*
-
----
-
-## 🌟 Roadmap & Future Directions <a name="roadmap"></a>
-### **Core Features**
-- [x] Basic LinkedIn-to-Sheets integration
-- [x] Date and Benefits Tracking
-- [x] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
-- [ ] Make exe file. Easier for new users
-- [ ] **Auto-Sorting** by location (separate sheets per location)
-- [ ] Work with other job boards
-
+### Core Functionality
+- [x] **v1.0 Base Functionality** 
+- [x] **EXE Packaging** 
+- [ ] **v2.0 Multi-Platform Support** 
+  - Indeed.com integration
+  - Glassdoor scraping
 
 ---
 
-*Developed by [Bnguy777](https://github.com/Bnguy777)  
-*Report issues [here](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)*
+> **Note**: Requires active LinkedIn account and Google Workspace-compatible account.  
+> 🌐 GitHub: [https://github.com/Bnguy777](https://github.com/Bnguy777)
