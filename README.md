@@ -102,14 +102,19 @@ python job.py
 
 ## 🖥️ Live Demo <a name="demo"></a>
 
-### Google Sheet Integration
-[![Google Sheet Demo]]([https://youtu.be/TMxOaq1Oj1g](https://youtu.be/dir-9kCgLRQ?si=Zb0yHc4mDIDo9oDm))
+<a href="https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304">
+  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
+</a>
 
 **Tracked Fields**:
 1. Job Title 
 2. Company Name 
 3. Application URL 
-4. Salary Range 
+4. Salary Range
+5. Location
+6. Date
+7. Response
+8. Benefits
 
 ---
 
