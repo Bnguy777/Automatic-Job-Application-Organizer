@@ -4,3 +4,7 @@ credentials.json
 credentialsLinkedIn.txt
 credentialsIndeed.txt
 test.py
+JobOrganizer.spec
+build/
+job.spec
+dist/

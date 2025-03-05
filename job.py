@@ -14,7 +14,7 @@ import spacy
 from spacy.matcher import Matcher
 import os
 import msvcrt
-import traceback  # Added for better exception logging
+import traceback  
 from datetime import datetime
 import re
 import tkinter as tk
@@ -22,11 +22,19 @@ from tkinter import messagebox
 
 
 #Global Variables
-login_success = False  # Flag to track whether login is successful
+login_success = False  
 
-
+def get_base_path():
+    """Get the correct base path whether running as script or exe"""
+    if getattr(sys, 'frozen', False):
+        # Running as compiled exe - use EXE's directory
+        return os.path.dirname(sys.executable)
+    else:
+        # Running as script - use script's directory
+        return os.path.dirname(os.path.abspath(__file__))
+    
 # 🔹 Open LinkedIn Login Page
-def login_to_linkedin():
+def login_to_linkedin(credentials):
     global login_success
     driver.get("https://www.linkedin.com/login")
 
@@ -36,7 +44,6 @@ def login_to_linkedin():
     login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
     login_button.click()
 
-    # 🔹 Wait for login status
     # **Check if CAPTCHA page appears**
     if 'checkpoint/challenge' in driver.current_url:
         print("⚠️ CAPTCHA detected. Please solve it manually...")
@@ -148,8 +155,22 @@ def exit_program():
     driver.quit()
     sys.exit(0)
 
-# Load spaCy model
-nlp = spacy.load("en_core_web_sm")
+def load_spacy_model():
+    base_path = get_base_path()
+    model_path = os.path.join(base_path, 'en_core_web_sm') 
+    
+    print(f"🔍 Loading spaCy model from: {model_path}")
+    print(f"📂 Folder contents: {os.listdir(base_path)}") 
+    
+    try:
+        return spacy.load(model_path)
+    except Exception as e:
+        print(f"❌ Failed to load spaCy model: {e}")
+        print(f"Verify these files exist in {model_path}:")
+        print(f"Required: meta.json, config.cfg, tokenizer")
+        sys.exit(1)
+
+nlp = load_spacy_model()
 
 # Configure benefit patterns with linguistic context
 benefit_patterns = [
@@ -205,30 +226,25 @@ def extract_important_benefits(job_desc_text):
 
     return ", ".join(sorted(benefits))[:500] if benefits else "Key benefits not specified"
 
+
 def load_credentials(file_name):
-    """ Load specific credentials (LinkedIn or Indeed) from the given file. """
     credentials = {}
+    base_path = get_base_path()
+    file_path = os.path.join(base_path, file_name)
+    
+    print(f"🔍 Looking for credentials at: {file_path}")
+    
     try:
-        with open(file_name, "r") as file:
-            for line in file.readlines():
+        with open(file_path, "r") as file:
+            for line in file:
                 line = line.strip()
                 if "=" in line:
-                    key, value = line.split("=")
+                    key, value = line.split("=", 1)
                     credentials[key.strip()] = value.strip()
+        return credentials
     except FileNotFoundError:
-        print(f"⚠️ File {file_name} not found!")
+        print(f"❌ Missing {file_name}! Create it in: {base_path}")
         sys.exit(1)
-
-    # 🔹 Check if LinkedIn credentials and Google Sheets Spreadsheet ID are missing
-    if "username" not in credentials or "password" not in credentials:
-        print("⚠️ Missing LinkedIn credentials in credentials.txt")
-        sys.exit(1)
-
-    if "spreadsheet_id" not in credentials:
-        print("⚠️ Missing Google Sheets Spreadsheet ID in credentials.txt")
-        sys.exit(1)
-    
-    return credentials
 
 def get_salary(driver):
     try:
@@ -255,11 +271,11 @@ def get_salary(driver):
         if not re.search(r'\$\d+', salary):
             raise ValueError("No valid salary format found")
             
-        print(f"Sanitized salary: {salary}")
+        #print(f"Sanitized salary: {salary}")
         return salary
 
     except Exception as e:
-        print(f"Structured salary error: {str(e)}")
+        #print(f"Structured salary error: {str(e)}")
         return extract_salary_from_description()  # Fallback to NLP parsing
 
 # 🔹 Main loop to scrape job details and save to Google Sheets
@@ -279,26 +295,33 @@ if __name__ == "__main__":
 
 
     
-
-    Job_Company_Input = input("Linkedin or Indeed? (L or I): ")
-
+    #For future implementation when Indeed is supported
+    #Job_Company_Input = input("Linkedin or Indeed? (L or I): ")
+    Job_Company_Input = 'l'
 
     if Job_Company_Input.lower() == 'l':
 
-        print("LinkedIn Selected")
+        #print("LinkedIn Selected")
 
-        # 🔹 Read LinkedIn credentials and Google Sheets Spreadsheet ID from credentials.tx
-        credentials = load_credentials("credentialsLinkedin.txt")
-        SERVICE_ACCOUNT_FILE = "credentials.json"
-        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        print("Tracking jobs on LinkedIn...")
+        # Load LinkedIn credentials and Google Spreadsheet ID
+        linkedin_credentials = load_credentials("credentialsLinkedIn.txt")
 
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        client = gspread.authorize(creds)
-
-        SPREADSHEET_ID = credentials["spreadsheet_id"] 
-        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
+        base_path = get_base_path()
+        service_account_path = os.path.join(base_path, 'credentials.json')
         
-        login_to_linkedin()
+        try:
+            SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+            creds = Credentials.from_service_account_file(service_account_path, scopes=SCOPES)
+            client = gspread.authorize(creds)
+            SPREADSHEET_ID = linkedin_credentials["spreadsheet_id"]
+            sheet = client.open_by_key(SPREADSHEET_ID).sheet1
+        except Exception as e:
+            print(f"Error initializing Google Sheets: {e}")
+            sys.exit(1)
+
+        
+        login_to_linkedin(linkedin_credentials)
 
         # 🔹 Open LinkedIn Jobs Page
         driver.get("https://www.linkedin.com/jobs/")
@@ -340,7 +363,7 @@ if __name__ == "__main__":
                 if not salary:
                     salary = "N/A"
 
-                print(f"Final salary: {salary}")
+                
                 
 
                 # 🔹 Extract key information
