@@ -4,7 +4,7 @@
 
 [![Open Issues](https://img.shields.io/github/issues/Bnguy777/Automatic-Job-Application-Organizer)](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)
 
-![Demo](https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304)
+[![Demo](https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg)](https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304)
 
 ---
 
