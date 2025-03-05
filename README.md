@@ -1,12 +1,10 @@
 # 🔍 Automated Job Application Tracker & Organizer <a name="overview"></a>
 
-**Never miss a job application detail again!** Seamlessly sync LinkedIn job postings to your personalized Google Sheet tracker with AI-powered data extraction.
+**Never miss a job application detail again!** Seamlessly Log job posting details to your Google Sheet in under a second!
 
-[![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Open Issues](https://img.shields.io/github/issues/Bnguy777/Automatic-Job-Application-Organizer)](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/issues)
 
-![Demo Banner](https://via.placeholder.com/1200x400.png?text=Google+Sheets+Integration+Demo+Showing+Job+Details+Tracking)
+![Demo](https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304)
 
 ---
 
