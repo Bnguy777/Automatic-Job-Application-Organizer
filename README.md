@@ -23,6 +23,11 @@
 
 ## ⚙️ Installation Guide <a name="installation"></a>
 
+### Video Installation
+<a href="https://youtu.be/dir-9kCgLRQ?si=qngRT6QHpq8tSkRI">
+  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
+</a>
+
 ### 1. Google Sheet Setup (MANDATORY)
 **Step 1:** [Make a Copy of Template Sheet](https://docs.google.com/spreadsheets/d/1jEu5SZAC8szJa9HBLkUzjHBen_NDxcdvQIMF1tHI88Q/copy)  
 **Step 2:** Share with Service Account:
@@ -102,11 +107,8 @@ python job.py
 
 ---
 
-## 🖥️ Live Demo <a name="demo"></a>
+## Automatically Populating </a>
 
-<a href="https://youtu.be/dir-9kCgLRQ?si=qngRT6QHpq8tSkRI">
-  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
-</a>
 
 **Tracked Fields**:
 1. Job Title 
