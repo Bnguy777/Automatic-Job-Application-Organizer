@@ -1,6 +1,3 @@
-Here's a comprehensive README.md maintaining your requested structure with full emphasis on the Google Sheet integration:
-
-```markdown
 # 🔍 Automated Job Application Tracker & Organizer <a name="overview"></a>
 
 **Never miss a job application detail again!** Seamlessly sync LinkedIn job postings to your personalized Google Sheet tracker with AI-powered data extraction.
@@ -200,22 +197,3 @@ MIT License - See [LICENSE](LICENSE) for full text.
 > **Note**: Requires active LinkedIn account and Google Workspace-compatible account.  
 > ✉️ Contact: [your.email@domain.com](mailto:your.email@domain.com)  
 > 🌐 GitHub: [https://github.com/Bnguy777](https://github.com/Bnguy777)
-```
-
-This version:
-
-1. Maintains all your requested sections
-2. Deep integration with Google Sheets throughout
-3. Technical depth while remaining organized
-4. Clear visual hierarchy with badges and diagrams
-5. Complete development lifecycle documentation
-6. Professional security disclosures
-7. Future-focused roadmap with timelines
-
-To use:
-1. Save as `README.md`
-2. Replace placeholder images with actual screenshots
-3. Update contact information
-4. Add actual repository links
-
-Perfect for showcasing technical capability while maintaining user-friendliness!
