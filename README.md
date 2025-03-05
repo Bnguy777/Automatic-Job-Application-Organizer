@@ -16,9 +16,6 @@
 |------------------------|---------------------------------------------------------------------------------------|
 | **Google Sheet Sync**  | Real-time updates via Sheets API v4 with automatic formatting                         |
 | **LinkedIn Parsing**   | CSS Selector-based extraction of job titles, companies, and salaries                 |
-| **Credential Security**| Encrypted credential storage using Fernet (AES-128)                                  |
-| **Error Handling**     | Automated retries with exponential backoff for API calls                             |
-| **Cross-Platform**     | Compatible with Windows 10/11, macOS Ventura+, and Linux (Ubuntu 22.04+)            |
 
 ---
 
@@ -83,12 +80,9 @@ max_retries = 5
 .
 ├── credentials.json            # Google Service Account
 ├── credentialsLinkedIn.txt     # User-specific settings
-├── src/
-│   ├── main.py                 # Main application logic
-│   └── sheet_manager.py        # Google Sheets API handler
-├── chromedriver/               # Platform-specific drivers
+├── JobOrganizer.exe            # Main file to run
+├── chromedriver.exe            # Platform-specific drivers
 ├── en_core_web_sm/             # NLP model data
-└── requirements.txt            # Dependency manifest
 ```
 
 ---
@@ -97,12 +91,10 @@ max_retries = 5
 
 ```bash
 # Start application (ensure Chrome is installed)
-python src/main.py
+python job.py
 
 # Command List:
 # [ENTER]  - Log current job
-# [S]      - Show application statistics
-# [R]      - Refresh browser session
 # [Q]      - Quit and save session
 ```
 
@@ -139,52 +131,11 @@ python src/main.py
 ## 🌟 Roadmap & Future Features <a name="roadmap"></a>
 
 ### Core Functionality
-- [x] **v1.0 Base Functionality** (2023-09-30)
-- [x] **EXE Packaging** (2023-10-15)
-- [ ] **v2.0 Multi-Platform Support** (2024-Q1)
+- [x] **v1.0 Base Functionality** 
+- [x] **EXE Packaging** 
+- [ ] **v2.0 Multi-Platform Support** 
   - Indeed.com integration
   - Glassdoor scraping
-- [ ] **AI Analysis Suite** (2024-Q2)
-  - Application success predictor
-  - Salary negotiation advisor
-
-### Technical Debt
-- [ ] Implement full test coverage (Current: 68%)
-- [ ] Convert to async/await architecture
-- [ ] Add Prometheus monitoring endpoints
-
----
-
-## 🔒 Security & Privacy
-
-**Data Handling**:
-- Credentials stored in memory only during active sessions
-- All API calls use HTTPS with TLS 1.3 encryption
-- Google Sheet permissions reviewed weekly
-
-**User Responsibility**:
-```bash
-# Revoke access when done:
-1. Google Account > Third-Party Apps > Remove Access
-2. LinkedIn > Signed Devices > Terminate Session
-3. Delete credentials.json from filesystem
-```
-
----
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-**Development Requirements**:
-```bash
-pre-commit install
-pytest tests/ --cov=src/ --cov-report=html
-```
 
 ---
 
@@ -195,5 +146,4 @@ MIT License - See [LICENSE](LICENSE) for full text.
 ---
 
 > **Note**: Requires active LinkedIn account and Google Workspace-compatible account.  
-> ✉️ Contact: [your.email@domain.com](mailto:your.email@domain.com)  
 > 🌐 GitHub: [https://github.com/Bnguy777](https://github.com/Bnguy777)
