@@ -6,7 +6,9 @@
 
 # Demo
 
-[![Demo](https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg)](https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304)
+<a href="https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304">
+  <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
+</a>
 
 ---
 
@@ -102,7 +104,7 @@ python job.py
 
 ## 🖥️ Live Demo <a name="demo"></a>
 
-<a href="https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304">
+<a href="https://youtu.be/dir-9kCgLRQ?si=qngRT6QHpq8tSkRI">
   <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
 </a>
 
