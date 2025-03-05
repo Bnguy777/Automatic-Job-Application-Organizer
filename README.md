@@ -98,33 +98,18 @@ python job.py
 # [Q]      - Quit and save session
 ```
 
-**First-Run Workflow**:
-1. Complete LinkedIn CAPTCHA (if prompted)
-2. Grant OAuth permissions for Google Sheets
-3. Begin logging jobs via terminal interface
-
-![Terminal Interface Demo](https://via.placeholder.com/600x300.png?text=Terminal+Interface+Showing+Job+Logging+Commands)
-
 ---
 
 ## 🖥️ Live Demo <a name="demo"></a>
 
 ### Google Sheet Integration
-[![Google Sheet Demo](https://via.placeholder.com/800x400.png?text=Live+Google+Sheet+Showing+Real-Time+Job+Application+Updates)](https://youtu.be/TMxOaq1Oj1g)
+[![Google Sheet Demo]]([https://youtu.be/TMxOaq1Oj1g](https://youtu.be/dir-9kCgLRQ?si=Zb0yHc4mDIDo9oDm))
 
 **Tracked Fields**:
-1. Job Title (with NLP normalization)
-2. Company Name (with Fortune 500 flagging)
-3. Application URL (direct LinkedIn deep link)
-4. Salary Range (converted to USD equivalents)
-5. Application Status Pipeline:
-   ```mermaid
-   graph LR
-   A[Discovered] --> B[Applied]
-   B --> C[Interviewing]
-   C --> D[Offer]
-   C --> E[Rejected]
-   ```
+1. Job Title 
+2. Company Name 
+3. Application URL 
+4. Salary Range 
 
 ---
 
@@ -136,12 +121,6 @@ python job.py
 - [ ] **v2.0 Multi-Platform Support** 
   - Indeed.com integration
   - Glassdoor scraping
-
----
-
-## 📜 License
-
-MIT License - See [LICENSE](LICENSE) for full text.
 
 ---
 
