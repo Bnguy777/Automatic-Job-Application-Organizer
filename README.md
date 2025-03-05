@@ -164,14 +164,10 @@ python -m spacy download en_core_web_sm
 - [x] Basic LinkedIn-to-Sheets integration
 - [x] Date and Benefits Tracking
 - [x] **Application Status Tracking** (Interview Scheduled/Rejected/Offer)
+- [ ] Make exe file. Easier for new users
 - [ ] **Auto-Sorting** by location (separate sheets per location)
 - [ ] Work with other job boards
 
-### **Advanced Features**
-- [ ] PostgreSQL integration for advanced querying
-- [ ] GUI configuration panel for field selection
-- [ ] AI-powered job classification (seniority/industry)
-- [ ] Analytics dashboard with success rate metrics
 
 ---
 
