@@ -28,6 +28,8 @@
   <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
 </a>
 
+Navigate to releases on the right. Current Version 1.1. Download JobOrganizer zip. Extract and begin the video installation above
+
 ### 1. Google Sheet Setup (MANDATORY)
 **Step 1:** [Make a Copy of Template Sheet](https://docs.google.com/spreadsheets/d/1jEu5SZAC8szJa9HBLkUzjHBen_NDxcdvQIMF1tHI88Q/copy)  
 **Step 2:** Share with Service Account:
