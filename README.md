@@ -9,7 +9,7 @@
 <a href="https://youtu.be/dir-9kCgLRQ?si=xrv-l9fFqYcxeeLO&t=304">
   <img src="https://img.youtube.com/vi/dir-9kCgLRQ/maxresdefault.jpg" alt="Demo" width="400"/>
 </a>
-![Format of jobs logged](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/blob/main/images/Screenshot_1.png)
+![Screenshot of the app](https://github.com/Bnguy777/Automatic-Job-Application-Organizer/blob/main/images/Screenshot_1.png)
 
 
 ---
