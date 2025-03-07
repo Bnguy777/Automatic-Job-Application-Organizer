@@ -11,7 +11,7 @@
 </a>
 
 <img src="https://raw.githubusercontent.com/Bnguy777/Automatic-Job-Application-Organizer/main/images/Screenshot_1.png" alt="Screenshot of the app" width="400"/>
-
+<img src="https://raw.githubusercontent.com/Bnguy777/Automatic-Job-Application-Organizer/main/images/Screenshot_2.png" alt="Screenshot of the app" width="400"/>
 ---
 
 ## 🛠️ Features <a name="features"></a>
