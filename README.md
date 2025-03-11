@@ -81,9 +81,6 @@ email = your.linkedin@email.com
 password = YourSecurePassword123!
 spreadsheet_id = your-copied-sheet-id-from-url
 
-[Settings]
-headless_mode = False  # Set True for server environments
-max_retries = 5
 ```
 
 **File Structure Validation**:
