@@ -17,107 +17,79 @@ import msvcrt
 import traceback  
 from datetime import datetime
 import re
-import tkinter as tk
-from tkinter import messagebox
-
 
 #Global Variables
 login_success = False  
 
 def get_base_path():
-    """Get the correct base path whether running as script or exe"""
+    #Get the correct base path whether running as script or exe
+
     if getattr(sys, 'frozen', False):
-        # Running as compiled exe - use EXE's directory
+        
         return os.path.dirname(sys.executable)
     else:
-        # Running as script - use script's directory
+        
         return os.path.dirname(os.path.abspath(__file__))
     
-# 🔹 Open LinkedIn Login Page
+
 def login_to_linkedin(credentials):
     global login_success
     driver.get("https://www.linkedin.com/login")
 
-    # 🔹 Log in to LinkedIn
+    # Find login elemnts
     username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).send_keys(credentials["username"])
     password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).send_keys(credentials["password"])
     login_button = driver.find_element(By.XPATH, '//*[@type="submit"]')
     login_button.click()
 
-    # **Check if CAPTCHA page appears**
+    # Check if CAPTCHA page appears
     if 'checkpoint/challenge' in driver.current_url:
         print("⚠️ CAPTCHA detected. Please solve it manually...")
         
-        # Wait indefinitely for the user to solve the CAPTCHA
-        WebDriverWait(driver, 60).until(EC.url_contains('https://www.linkedin.com/feed/'))  # Wait for the feed URL to load
+        # wait until captcha solved
+        WebDriverWait(driver, 60).until(EC.url_contains('https://www.linkedin.com/feed/')) 
+
         print("🔹 Successfully logged in! Feed page is accessible.")
         login_success = True
 
     else:
-        # **No CAPTCHA, check if the URL redirects to the feed page**
+        # No captcha
         if "feed" in driver.current_url:
             print("🔹 Successfully logged in! Redirected to feed page.")
+
             login_success = True
         else:
-            print("⚠️ Login failed. Could not confirm Feed page.")
-            # Reload the page and retry the login process
+            print("⚠️ Login failed. Could not confirm Feed page.")   
             print("🔄 Reloading the page to try again...")
-            driver.refresh()
-            # Wait a bit before retrying to allow the page to reload properly
-            time.sleep(5)
 
-            # **Return here, so the function can be called again from the outer logic**
+            driver.refresh()
+            time.sleep(5)
             return
 
-def login_to_Indeed():
-    global login_success
-    driver.get("https://www.indeed.com/")
 
-    # 🔹 Wait for the page to load
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-
-    try:
-        # 🔹 Check if the search input field is present (indicating the user is logged in)
-        search_input = wait.until(EC.presence_of_element_located((By.ID, "text-input-what")))
-
-        if search_input:
-            print("🔹 Successfully logged in! Found the search input field.")
-            login_success = True
-        else:
-            print("⚠️ Unable to find the search input field. Login failed.")
-            login_success = False
-    except Exception as e:
-        print(f"⚠️ Error: {e}")
-        login_success = False
-
-
-
-# Function to extract salary using spaCy (NER)
 def extract_salary_with_spacy(job_desc_text):
     try:
-        # Process the text with spaCy
+
         doc = nlp(job_desc_text)
 
-        # Look for money-related entities (MONEY, QUANTITY, etc.)
+        # Look for money-related entities 
         salary_entities = [ent for ent in doc.ents if ent.label_ in ['MONEY']]
 
-        # If we find any money entities, return them
         if salary_entities:
             return " / ".join([ent.text for ent in salary_entities])
         else:
-            # Fallback if no entities found
             return "Salary not available"
+        
     except Exception as e:
         print(f"Error using spaCy: {e}")
         return "Salary not available"
 
 
-# Function to extract location from job description
 def extract_location_from_description():
     try:
-        # Wait for the location to appear using the provided XPath
+       
         location_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, LinkedIn_location_xpath)))
-        location = location_element.text.strip()  # Extract and clean the location text
+        location = location_element.text.strip() 
 
         # Infer remote if location is US
         if "United States" in location:
@@ -129,20 +101,12 @@ def extract_location_from_description():
         return "Location not available"
 
 
-# 🔹 Get the current job URL
-def get_job_url():
-    return driver.execute_script("return window.location.href")
-
-
-# 🔹 Function to extract salary from the job description
 def extract_salary_from_description():
     try:
-        # Wait for the job description to appear using the provided XPath
+       
         job_desc_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, LinkedIn_job_desc_xpath)))
-        job_desc_text = job_desc_element.text.strip()  # Extract and clean the job description text
-        #print(f"Job Description Text: {job_desc_text}")
+        job_desc_text = job_desc_element.text.strip() 
 
-        # Extract salary information using spaCy
         salary = extract_salary_with_spacy(job_desc_text)
 
         return salary
@@ -150,10 +114,12 @@ def extract_salary_from_description():
         print(f"Error extracting salary from job description: {e}")
         return "Salary not available"
 
+
 def exit_program():
     print("Closing browser...")
     driver.quit()
     sys.exit(0)
+
 
 def load_spacy_model():
     base_path = get_base_path()
@@ -172,7 +138,7 @@ def load_spacy_model():
 
 nlp = load_spacy_model()
 
-# Configure benefit patterns with linguistic context
+
 benefit_patterns = [
     # Health insurance variations
     [{"LEMMA": {"IN": ["medical", "dental", "vision"]}}, {"LEMMA": "insurance"}],
@@ -271,14 +237,14 @@ def get_salary(driver):
         if not re.search(r'\$\d+', salary):
             raise ValueError("No valid salary format found")
             
-        #print(f"Sanitized salary: {salary}")
+
         return salary
 
     except Exception as e:
-        #print(f"Structured salary error: {str(e)}")
+
         return extract_salary_from_description()  # Fallback to NLP parsing
 
-# 🔹 Main loop to scrape job details and save to Google Sheets
+
 if __name__ == "__main__":
     print("🚀 Starting the LinkedIn Job Application Organizer...")
 
@@ -294,17 +260,12 @@ if __name__ == "__main__":
     wait = WebDriverWait(driver, 10)
 
 
-    
-    #For future implementation when Indeed is supported
-    #Job_Company_Input = input("Linkedin or Indeed? (L or I): ")
     Job_Company_Input = 'l'
 
     if Job_Company_Input.lower() == 'l':
 
-        #print("LinkedIn Selected")
-
         print("Tracking jobs on LinkedIn...")
-        # Load LinkedIn credentials and Google Spreadsheet ID
+        
         linkedin_credentials = load_credentials("credentialsLinkedIn.txt")
 
         base_path = get_base_path()
@@ -323,7 +284,6 @@ if __name__ == "__main__":
         
         login_to_linkedin(linkedin_credentials)
 
-        # 🔹 Open LinkedIn Jobs Page
         driver.get("https://www.linkedin.com/jobs/")
 
         # xpath for job title, company name, job description, location, pay
@@ -362,8 +322,6 @@ if __name__ == "__main__":
 
                 if not salary:
                     salary = "N/A"
-
-                
                 
 
                 # 🔹 Extract key information
@@ -397,47 +355,10 @@ if __name__ == "__main__":
             time.sleep(0.5)  
 
     elif Job_Company_Input.lower() == 'i':
-        print("Indeed Selected")
-        print("Indeed is currently not supported.")
         
         # Currently not supported. Can not get through captcha manually
 
-        '''
-        credentials = load_credentials("credentialsIndeed.txt")
-        SERVICE_ACCOUNT_FILE = "credentials.json"
-        SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-
-        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        client = gspread.authorize(creds)
-
-        SPREADSHEET_ID = credentials["spreadsheet_id"] 
-        sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
-        
-        login_to_Indeed()
-        print("t12")
-        driver.get("https://www.indeed.com/")
-        print("t12")
-        print(login_success)
-        while login_success:
-
-            try:
-                print("t13")
-                current_job_url = driver.current_url
-                current_job_id = current_job_url.split('currentJobId=')[-1].split('&')[0]
-
-                user_input = input("Press Enter to save this job or 'q' to quit: ")
-
-                if user_input.lower() == 'q':
-                    print("Exiting program...")
-                    exit_program()
-            except Exception as e:
-                print(f"⚠️ An error occurred: {str(e)}")
-                print(f"Stack trace: {traceback.format_exc()}")
-
-            time.sleep(0.5)  
-    '''
-
-
+        '''t'''
         
     elif Job_Company_Input.lower() == 'm':
         print("Manual Input Selected")
